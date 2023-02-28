@@ -17,7 +17,7 @@
             "mainClass": "ResponsibilityGUI",
             "projectName": "ResponsibilitySimulation_e6bd807c",
             "args": "naive saveLoc \"output/naive15/\""
-        }
+        },
         {
             "type": "java",
             "name": "Launch Res",
