@@ -317,7 +317,7 @@ public class CleaningWorld
 			}
 			for (UpdateToWorld u : worldListeners)
 			{
-				u.worldUpdate(remainingSteps, dirtNum, badDirtNum, world, agentLocations, agentColours);
+				u.worldUpdate(remainingSteps, totalDirt, totalBadDirt, world, agentLocations, agentColours);
 			}
 			remainingSteps--;
 		}

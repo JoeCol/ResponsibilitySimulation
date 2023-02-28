@@ -6,6 +6,7 @@ import java.util.HashMap;
 public abstract class Agent 
 {
     private String name;
+	private boolean dirty = false;
     protected ArrayDeque<Message> msgs = new ArrayDeque<Message>();
     protected ArrayList<Responsibility> responsibilities = new ArrayList<Responsibility>();
 	protected HashMap<Responsibility,String> assigned = new HashMap<Responsibility,String>();
@@ -144,10 +145,22 @@ public abstract class Agent
 		actions.add(CleaningWorld.AgentAction.aa_observedirt);
 	}
 
+	protected boolean getDirty()
+	{
+		return dirty;
+	}
+
+	protected void setDirty(boolean _dirty)
+	{
+		dirty = _dirty;
+	}
+
     protected void addResponsibility(Responsibility r, String assignee)
     {
         responsibilities.add(r);
 		assigned.put(r, assignee);
+		dirty = true;
+		msgs.add(new Message(getName(), assignee, "accepted", r));
     }
 
 	protected void removeResponsibility(Responsibility r)
@@ -156,6 +169,10 @@ public abstract class Agent
 		String assignee = assigned.get(r);
 		assigned.remove(r);
 		msgs.add(new Message(name, assignee, "finished", r));
+		if (r.getType() == Responsibility.ResType.rt_repeat)
+		{
+			addResponsibility(r, assignee);
+		}
     }
 
 	protected void informComplete(Responsibility r)

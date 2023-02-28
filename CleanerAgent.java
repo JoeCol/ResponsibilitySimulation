@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 public class CleanerAgent extends Agent
 {
-    private boolean dirty = false;
     private boolean sentValueLast = false;
     private Responsibility workingOn;
 
@@ -28,7 +27,6 @@ public class CleanerAgent extends Agent
         {
             careRes.put(attachedRes, 0);
         }
-        msgs.add(new Message(getName(), assignee, "accepted", attachedRes));
         for (Responsibility subRes : attachedRes.getSubRes())
         {
             processRes(subRes, assignee);
@@ -40,52 +38,51 @@ public class CleanerAgent extends Agent
     {
         if (m.content.equals("assignment"))
         {
-            dirty = true;
             processRes(m.attachedRes, m.sender);
         }
     }
 
     @Override
     public void reason() {
-        if (dirty)
+        if (getDirty())
         {
             actions.clear();
-            dirty = false;
-        }
-        ArrayList<ArrayList<Responsibility>> res = getViable();
-        ArrayList<Responsibility> toDo = getMostCared(res);
-        for (Responsibility r : toDo)
-        {
-            Task t = r.getTask();
-            for (Task.TaskAction a : t.getActions())
+            ArrayList<ArrayList<Responsibility>> res = getViable();
+            ArrayList<Responsibility> toDo = getMostCared(res);
+            for (Responsibility r : toDo)
             {
-                if (actions.size() == 0 && a.actionToDo.matches("cleanroom[A-Z]"))
+                Task t = r.getTask();
+                for (Task.TaskAction a : t.getActions())
                 {
-                    char zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
-                    workingOn = r;
-                    goToZone(zone);
-                    cleanZone(zone);
-                    actions.add(CleaningWorld.AgentAction.aa_finish);
-                }
-                else if (a.actionToDo.equals("sendStatus"))
-                {
-                    boolean busy = actions.size() > 0;
-                    if (busy != sentValueLast)
+                    if (actions.size() == 0 && a.actionToDo.matches("cleanroom[A-Z]"))
                     {
-                        msgs.add(new Message(getName(), "manager", "isBusy(" + busy + ")", null));
-                        sentValueLast = busy;
+                        char zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
+                        workingOn = r;
+                        goToZone(zone);
+                        cleanZone(zone);
+                        actions.add(CleaningWorld.AgentAction.aa_finish);
+                    }
+                    else if (a.actionToDo.equals("sendStatus"))
+                    {
+                        boolean busy = actions.size() > 0;
+                        if (busy != sentValueLast)
+                        {
+                            msgs.add(new Message(getName(), "Manager", "isBusy(" + busy + ")", null));
+                            sentValueLast = busy;
+                        }
+                    }
+                }
+                for (Task.TaskState s : t.getStates())
+                {
+                    switch (s.stateToCheck)
+                    {
+                        default:
+                            break;
                     }
                 }
             }
-            for (Task.TaskState s : t.getStates())
-            {
-                switch (s.stateToCheck)
-                {
-                    default:
-                        break;
-                }
-            }
-        }
+            setDirty(false);
+        }  
     }
 
     @Override
@@ -111,15 +108,7 @@ public class CleanerAgent extends Agent
     public void processFinished() {
         for (Responsibility r : finishedRes)
         {
-            if (r.getType() == Responsibility.ResType.rt_oneshot)
-            {
-                responsibilities.remove(r);
-                removeResponsibility(r);
-            }
-            else
-            {
-                informComplete(r);
-            }
+            removeResponsibility(r);
         }
         finishedRes.clear();
     }

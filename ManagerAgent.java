@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class ManagerAgent extends Agent
 {
-	private boolean dirty = false;
+	
     private HashMap<Character,WorldCell.DirtLevel> zoneObserved = new HashMap<Character,WorldCell.DirtLevel>();
     private ArrayDeque<String> freeAgents = new ArrayDeque<String>();
     private ArrayDeque<String> sendToAgent = new ArrayDeque<String>();
@@ -13,11 +13,11 @@ public class ManagerAgent extends Agent
     public ManagerAgent(String _name, Routes routes, HashMap<Character, ArrayList<Pair<Integer, Integer>>> _zones) 
     {
         super(_name, routes, _zones);
-        freeAgents.push("Cleaner 1");
-        freeAgents.push("Cleaner 2");
+        freeAgents.add("Cleaner 1");
+        freeAgents.add("Cleaner 2");
 
-        sendToAgent.push("Cleaner 1");
-        sendToAgent.push("Cleaner 2");
+        sendToAgent.add("Cleaner 1");
+        sendToAgent.add("Cleaner 2");
     }
 
     private void updateCareValues() 
@@ -26,8 +26,8 @@ public class ManagerAgent extends Agent
         {
             if (r.getName().matches("cleanBadDirt[A-Z]"))
 			{
-				char zone = r.getName().toLowerCase().charAt(r.getName().length() - 1);
-                if (zoneObserved.containsKey(zone) && zoneObserved.get(zone) != WorldCell.DirtLevel.dl_clear)
+				char zone = r.getName().charAt(r.getName().length() - 1);
+                if (zoneObserved.containsKey(zone) && zoneObserved.get(zone) == WorldCell.DirtLevel.dl_badDirt)
                 {
                     careRes.put(r, 7);
                 }
@@ -38,8 +38,8 @@ public class ManagerAgent extends Agent
 			}
 			else if (r.getName().matches("clean[A-Z]"))
 			{
-				char zone = r.getName().toLowerCase().charAt(r.getName().length() - 1);
-                if (zoneObserved.containsKey(zone) && zoneObserved.get(zone) != WorldCell.DirtLevel.dl_clear)
+				char zone = r.getName().charAt(r.getName().length() - 1);
+                if (zoneObserved.containsKey(zone) && zoneObserved.get(zone) == WorldCell.DirtLevel.dl_dirt)
                 {
                     careRes.put(r, 6);
                 }
@@ -54,7 +54,7 @@ public class ManagerAgent extends Agent
     private void processRes(Responsibility attachedRes, String assignee) 
     {
         //Assuming capable
-        responsibilities.add(attachedRes);
+        addResponsibility(attachedRes,assignee);
         if (attachedRes.getName().matches("cleanBadDirt[A-Z]"))
         {
             careRes.put(attachedRes, 2);
@@ -91,7 +91,6 @@ public class ManagerAgent extends Agent
                     break;
             }
         }
-        msgs.add(new Message(getName(), assignee, "accepted", attachedRes));
         for (Responsibility subRes : attachedRes.getSubRes())
         {
             processRes(subRes, assignee);
@@ -109,7 +108,6 @@ public class ManagerAgent extends Agent
     public void receiveMessage(Message m) {
         if (m.content.equals("assignment"))
         {
-            dirty = true;
             processRes(m.attachedRes, m.sender);
             updateCareValues();
         }
@@ -128,66 +126,71 @@ public class ManagerAgent extends Agent
 
     @Override
     public void reason() {
-        if (dirty)
+        if (getDirty())
         {
             actions.clear();
-            dirty = false;
-        }
-        ArrayList<ArrayList<Responsibility>> res = getViable();
-        ArrayList<Responsibility> toDo = getMostCared(res);
-        for (Responsibility r : toDo)
-        {
-            Task t = r.getTask();
-            for (Task.TaskAction a : t.getActions())
+            ArrayList<ArrayList<Responsibility>> res = getViable();
+            ArrayList<Responsibility> toDo = getMostCared(res);
+            for (Responsibility r : toDo)
             {
-                char zone = 0;
-                if (actions.size() == 0 && a.actionToDo.matches("observe[A-Z]"))
+                Task t = r.getTask();
+                for (Task.TaskAction a : t.getActions())
                 {
-                    zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
-                    goToZone(zone);
-                    observe(zone);
-                    actions.add(CleaningWorld.AgentAction.aa_finish);
-                    workingOn = r;
-                }
-                else if (a.actionToDo.matches("cleanroom[A-Z]"))
-                {
-                    zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
-                    if (zoneObserved.get(zone) == WorldCell.DirtLevel.dl_badDirt)
+                    char zone = 0;
+                    if (actions.size() == 0 && a.actionToDo.matches("observe[A-Z]"))
                     {
-                        if (!freeAgents.isEmpty())
+                        zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
+                        goToZone(zone);
+                        observe(zone);
+                        actions.add(CleaningWorld.AgentAction.aa_finish);
+                        workingOn = r;
+                    }
+                    else if (a.actionToDo.matches("cleanroom[A-Z]"))
+                    {
+                        zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
+                        if (zoneObserved.get(zone) == WorldCell.DirtLevel.dl_badDirt)
                         {
-                            delegate(r,freeAgents.pop());
+                            observed(zone, WorldCell.DirtLevel.dl_clear);
+                            if (!freeAgents.isEmpty())
+                            {
+                                Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getTask(), Responsibility.ResType.rt_oneshot);
+                                delegate(delegated,freeAgents.remove());
+                                finishedRes.add(r);
+                            }
+                            else
+                            {
+                                goToZone(zone);
+                                cleanZone(zone);
+                                actions.add(CleaningWorld.AgentAction.aa_finish);
+                                workingOn = r;
+                            }
                         }
-                        else
+                        else if (zoneObserved.get(zone) == WorldCell.DirtLevel.dl_dirt)
                         {
-                            goToZone(zone);
-                            cleanZone(zone);
-                            actions.add(CleaningWorld.AgentAction.aa_finish);
-                            workingOn = r;
+                            Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getTask(), Responsibility.ResType.rt_oneshot);
+                            observed(zone, WorldCell.DirtLevel.dl_clear);
+                            String ag = sendToAgent.remove();
+                            delegate(delegated,ag);
+                            sendToAgent.add(ag);
+                            finishedRes.add(r);
                         }
                     }
-                    else if (zoneObserved.get(zone) == WorldCell.DirtLevel.dl_dirt)
+                    else if (a.actionToDo.equals("sendToHuman"))
                     {
-                        String ag = sendToAgent.pop();
-                        delegate(r,ag);
-                        sendToAgent.push(ag);
+                        System.out.println("A report to human");
                     }
                 }
-                else if (a.actionToDo.equals("sendToHuman"))
+                for (Task.TaskState s : t.getStates())
                 {
-                    System.out.println("A report to human");
+                    switch (s.stateToCheck)
+                    {
+                        default:
+                            break;
+                    }
                 }
             }
-            for (Task.TaskState s : t.getStates())
-            {
-                switch (s.stateToCheck)
-                {
-                    default:
-                        break;
-                }
-            }
+            setDirty(false);
         }
-        
     }
 
     @Override
@@ -206,7 +209,7 @@ public class ManagerAgent extends Agent
         for (Responsibility r : finishedRes)
         {
             boolean allCompleted = true;
-            for (Responsibility subRes : finishedRes)
+            for (Responsibility subRes : r.getSubRes())
             {
                 if (!finishedRes.contains(subRes))
                 {
@@ -215,15 +218,7 @@ public class ManagerAgent extends Agent
             }
             if (allCompleted)
             {
-                if (r.getType() == Responsibility.ResType.rt_oneshot)
-                {
-                    responsibilities.remove(r);
-                    removeResponsibility(r);
-                }
-                else
-                {
-                    informComplete(r);
-                }
+                removeResponsibility(r);
             }
         }
         finishedRes.clear();
