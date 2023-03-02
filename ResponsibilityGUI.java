@@ -27,8 +27,9 @@ public class ResponsibilityGUI {
 		int simSteps = 10000;
 		int dirtInt = 15; 
 		int badDirtInt = 5;
-		String worldLoc = "10Rooms.world";
+		String worldLoc = "21Rooms.world";
 		boolean naive = false;
+		int simSpeed = 0;
 		for (int i = 0; i < args.length; i++)
 		{
 			switch (args[i].toLowerCase())
@@ -49,11 +50,14 @@ public class ResponsibilityGUI {
 			case "naive":
 				naive = true;
 				break;
+			case "speed":
+				simSpeed = Integer.valueOf(args[++i]);
+				break;
 			default:
 				System.out.println("Unrecognised argument: " + args[i]);
 			}
 		}
-		world = new CleaningWorld(simSteps, dirtInt, badDirtInt, worldLoc, saveLoc);
+		world = new CleaningWorld(simSteps, dirtInt, badDirtInt, worldLoc, saveLoc, simSpeed);
 		world.setup_agents(naive);
 		
 		EventQueue.invokeLater(new Runnable() 

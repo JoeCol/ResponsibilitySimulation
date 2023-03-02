@@ -46,7 +46,6 @@ public class CleanerAgent extends Agent
     public void reason() {
         if (getDirty())
         {
-            actions.clear();
             ArrayList<ArrayList<Responsibility>> res = getViable();
             ArrayList<Responsibility> toDo = getMostCared(res);
             for (Responsibility r : toDo)
@@ -56,6 +55,10 @@ public class CleanerAgent extends Agent
                 {
                     if (actions.size() == 0 && a.actionToDo.matches("cleanroom[A-Z]"))
                     {
+                        if (workingOn != null && r.getName() != workingOn.getName())
+                        {
+                            actions.clear();
+                        }
                         char zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
                         workingOn = r;
                         goToZone(zone);

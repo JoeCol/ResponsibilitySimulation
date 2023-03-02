@@ -169,6 +169,7 @@ public abstract class Agent
 		String assignee = assigned.get(r);
 		assigned.remove(r);
 		msgs.add(new Message(name, assignee, "finished", r));
+		dirty = true;
 		if (r.getType() == Responsibility.ResType.rt_repeat)
 		{
 			addResponsibility(r, assignee);
@@ -185,6 +186,7 @@ public abstract class Agent
 	{
 		Message toDelegate = new Message(name, to, "assignment", r);
 		msgs.add(toDelegate);
+		assigned.put(r, to);
 	}
 
     public abstract void observed(char zone, WorldCell.DirtLevel dl);
@@ -205,7 +207,7 @@ public abstract class Agent
         {
             return CleaningWorld.AgentAction.aa_none;
         }
-        return actions.poll();
+        return actions.peek();
     }
 
     public Agent(String _name, Routes routes, HashMap<Character, ArrayList<Pair<Integer, Integer>>> _zones)
@@ -229,4 +231,12 @@ public abstract class Agent
     }
 
     public abstract void updateNaiveList(ArrayDeque<Character> naiveQueue);
+
+    public void actionFinished(boolean actionFinished) 
+	{
+		if (actions.size() > 0 && actionFinished)
+		{
+			actions.remove();
+		}
+    }
 }

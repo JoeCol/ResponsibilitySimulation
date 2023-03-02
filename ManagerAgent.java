@@ -122,6 +122,10 @@ public class ManagerAgent extends Agent
                 freeAgents.add(m.sender);
             }
         }
+        else if (m.content.equals("finished"))
+        {
+            assigned.remove(m.getAttachedRes());
+        }
     }
 
     @Override
@@ -148,12 +152,12 @@ public class ManagerAgent extends Agent
                     else if (a.actionToDo.matches("cleanroom[A-Z]"))
                     {
                         zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
+                        Responsibility delegated = SetupResponsibilities.findDelegateRes(r.getName());
                         if (zoneObserved.get(zone) == WorldCell.DirtLevel.dl_badDirt)
                         {
                             observed(zone, WorldCell.DirtLevel.dl_clear);
                             if (!freeAgents.isEmpty())
                             {
-                                Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getTask(), Responsibility.ResType.rt_oneshot);
                                 delegate(delegated,freeAgents.remove());
                                 finishedRes.add(r);
                             }
@@ -165,13 +169,25 @@ public class ManagerAgent extends Agent
                                 workingOn = r;
                             }
                         }
+                        else if (assigned.containsKey(delegated))
+                        {
+                            observed(zone, WorldCell.DirtLevel.dl_clear);
+                            finishedRes.add(r);
+                        }
                         else if (zoneObserved.get(zone) == WorldCell.DirtLevel.dl_dirt)
                         {
-                            Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getTask(), Responsibility.ResType.rt_oneshot);
                             observed(zone, WorldCell.DirtLevel.dl_clear);
-                            String ag = sendToAgent.remove();
+                            String ag;
+                            if (freeAgents.size() == 0)
+                            {
+                                ag = sendToAgent.remove();
+                                sendToAgent.add(ag);
+                            }
+                            else
+                            {
+                                ag = freeAgents.remove();
+                            }
                             delegate(delegated,ag);
-                            sendToAgent.add(ag);
                             finishedRes.add(r);
                         }
                     }

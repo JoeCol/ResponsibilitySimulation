@@ -16,6 +16,7 @@ public class CleaningWorld
 	Routes routeToZones = new Routes();
 	WorldCell[][] world;
 	int remainingSteps = 100;
+	int simSpeed = 350;
 	Settings currentSettings;
 	String saveLocation;
 	ArrayDeque<Message> msgs = new ArrayDeque<Message>();
@@ -29,7 +30,8 @@ public class CleaningWorld
 	HashMap<Agent, HashMap<String, Integer>> agentCares = new HashMap<Agent, HashMap<String,Integer>>();
 	
 	Random r = new Random();
-	
+	private HashMap<Agent, Integer> cleanCountdown = new HashMap<Agent, Integer>();
+	private Integer cleanLength = 30;
 	//Variables for naive cleaner
 	ArrayDeque<Character> naiveQueue = new ArrayDeque<Character>();
 	boolean naive;
@@ -41,6 +43,7 @@ public class CleaningWorld
 	int totalBadDirt = 0;
 	ArrayList<Pair<Integer,Integer>> possibleDirtLocations = new ArrayList<Pair<Integer,Integer>>();
 	DirtRecord dirtRecord = new DirtRecord();
+	
 
 	public Settings getSettings()
 	{
@@ -68,7 +71,8 @@ public class CleaningWorld
 			agents.add(new CleanerAgent("Cleaner 1",routeToZones,zoneSquares));
 			agents.add(new CleanerAgent("Cleaner 2",routeToZones,zoneSquares));
 			
-			msgs.add(new Message("initial", "Manager", "assignment", SetupResponsibilities.setupManagerResponsiblities()));
+			SetupResponsibilities.generateDelegatedRes(zoneSquares.size() - 1);
+			msgs.add(new Message("initial", "Manager", "assignment", SetupResponsibilities.setupManagerResponsiblities(zoneSquares.size() - 1)));
 			msgs.add(new Message("initial", "Cleaner 1", "assignment", SetupResponsibilities.setupCleanerResponsiblity()));
 			msgs.add(new Message("initial", "Cleaner 2", "assignment", SetupResponsibilities.setupCleanerResponsiblity()));
 		}
@@ -96,9 +100,10 @@ public class CleaningWorld
 		}
 	}
 
-	public CleaningWorld(int simSteps, int dirtInt, int badDirtInt, String worldLoc, String saveLoc)
+	public CleaningWorld(int simSteps, int dirtInt, int badDirtInt, String worldLoc, String saveLoc, int _simSpeed)
 	{
 		currentSettings = new Settings(0, 0, simSteps, dirtInt, badDirtInt, worldLoc);
+		simSpeed = _simSpeed;
 		saveLocation = saveLoc;
 		try
 		{
@@ -260,10 +265,25 @@ public class CleaningWorld
 				}
 				a.reason();
 				AgentAction action = a.getAction();
+				boolean actionFinished = true;
 				switch (action)
 				{
 					case aa_clean:
-						clean(agentLocation.getFirst(), agentLocation.getSecond()); 
+						actionFinished = false;
+						if (cleanCountdown.containsKey(a) && cleanCountdown.get(a) == 0)
+						{
+							clean(agentLocation.getFirst(), agentLocation.getSecond()); 
+							cleanCountdown.remove(a);
+							actionFinished = true;
+						}
+						else if (cleanCountdown.containsKey(a))
+						{
+							cleanCountdown.put(a,cleanCountdown.get(a) - 1);
+						}
+						else
+						{
+							cleanCountdown.put(a,cleanLength);
+						}
 						break;
 					case aa_movedown:
 						moveAgent(a, agentLocation.getFirst(), agentLocation.getSecond() + 1);
@@ -300,6 +320,7 @@ public class CleaningWorld
 					default:
 						break;
 				}
+				a.actionFinished(actionFinished);
 				while (a.hasMessageToSend())
 				{
 					Message m = a.getNextMessage();
@@ -313,13 +334,31 @@ public class CleaningWorld
 			if (dirtNum == 0)
 			{
 				badDirtNum = (++badDirtNum) % currentSettings.getBadDirtInterval();
-				addDirt(badDirtNum == 0);
+				if (badDirtNum != 0)
+				{
+					addDirt(false);addDirt(false);addDirt(false);addDirt(false);addDirt(false);
+				}
+				else
+				{
+					addDirt(true);addDirt(true);addDirt(true);
+				}
 			}
 			for (UpdateToWorld u : worldListeners)
 			{
 				u.worldUpdate(remainingSteps, totalDirt, totalBadDirt, world, agentLocations, agentColours);
 			}
 			remainingSteps--;
+
+			//Simulation speed
+			if (simSpeed > 0)
+			{
+				try {
+					Thread.sleep(simSpeed);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		save();
 		System.exit(0);
