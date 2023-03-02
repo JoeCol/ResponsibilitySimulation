@@ -5,6 +5,8 @@ public class WorldCell
 	private boolean traversable;
 	private boolean occupied = false;
 	private char zoneID;
+	private int appeared;
+	private int cleaned;
 
 	public boolean hasDirt() 
 	{
@@ -16,14 +18,21 @@ public class WorldCell
 		return dirtLevel == DirtLevel.dl_badDirt;
 	}
 	
-	public void setDirty(boolean bad)
+	public void setDirty(boolean bad, int time)
 	{
 		dirtLevel = bad ? DirtLevel.dl_badDirt : DirtLevel.dl_dirt;
+		appeared = time;
 	}
 	
-	public void clean()
+	public void clean(int time)
 	{
 		dirtLevel = DirtLevel.dl_clear;
+		cleaned = time;
+	}
+
+	public int timeAlive()
+	{
+		return appeared - cleaned;
 	}
 
 	public boolean isOccupied() {

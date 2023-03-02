@@ -42,8 +42,33 @@ public class DirtRecord {
 		
 	}
 
+	public class TimeRecord {
+		int timeAlive;
+		boolean badDirt;
+		
+		public TimeRecord(boolean badDirt, int timeAlive) {
+			super();
+			this.timeAlive = timeAlive;
+			this.badDirt = badDirt;
+		}
+
+		public String toString()
+		{
+			if (badDirt)
+			{
+				return "true," + timeAlive;
+			}
+			else
+			{
+				return "false," + timeAlive; 
+			}
+		}
+		
+	}
+
 	ArrayList<Record> allRecords = new ArrayList<Record>(); 
-	
+	ArrayList<TimeRecord> timeRecords = new ArrayList<TimeRecord>(); 
+
 	public void addRecord(int time, int dirtLevel, int badDirtLevel)
 	{
 		allRecords.add(new Record(time, dirtLevel, badDirtLevel));
@@ -53,6 +78,7 @@ public class DirtRecord {
 	{
 		try {
 			String filename = "DirtLevels_";
+			String timeName = "AliveTime_";
 			if (!Files.exists(Paths.get(directory)))
 			{
 				Files.createDirectories(Paths.get(directory));
@@ -71,6 +97,15 @@ public class DirtRecord {
 			}
 			fw.flush();
 			fw.close();
+
+			fw = new FileWriter(directory + timeName + fileNo + ".csv");
+			fw.write("badDirt,timeAlive" + System.lineSeparator());
+			for (TimeRecord r : timeRecords)
+			{
+				fw.write(r.toString() + System.lineSeparator());
+			}
+			fw.flush();
+			fw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -80,5 +115,10 @@ public class DirtRecord {
 	public void clear()
 	{
 		allRecords.clear();
+	}
+
+	public void addTimeRecord(boolean badDirt, int timeAlive) 
+	{
+		timeRecords.add(new TimeRecord(badDirt, timeAlive));
 	}
 }

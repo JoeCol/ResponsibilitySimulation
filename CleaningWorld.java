@@ -44,7 +44,6 @@ public class CleaningWorld
 	ArrayList<Pair<Integer,Integer>> possibleDirtLocations = new ArrayList<Pair<Integer,Integer>>();
 	DirtRecord dirtRecord = new DirtRecord();
 	
-
 	public Settings getSettings()
 	{
 		return currentSettings;
@@ -87,13 +86,13 @@ public class CleaningWorld
 		}
 	}
 	
-	private void addDirt(boolean bad) 
+	private void addDirt(boolean bad, int time) 
 	{
 		if (possibleDirtLocations.size() > 0)
 		{
 			Collections.shuffle(possibleDirtLocations);//to ensure that dirt is not evenly distributed as it is cleaned.
 			Pair<Integer,Integer> newDirt = possibleDirtLocations.remove(0);
-			getCell(newDirt.getFirst(),newDirt.getSecond()).setDirty(bad);
+			getCell(newDirt.getFirst(),newDirt.getSecond()).setDirty(bad, time);
 			totalDirt++;
 			if (bad) {totalBadDirt++;}
 			dirtRecord.addRecord(remainingSteps, totalDirt, totalBadDirt);
@@ -200,20 +199,23 @@ public class CleaningWorld
 		}
 	}
 
-	private void clean(int x, int y) 
+	private void clean(int x, int y, int time) 
 	{
+		
 		if (getCell(x,y).hasDirt())
 		{
+			boolean badDirt = false;
 			if (getCell(x,y).hasBadDirt())
 			{
 				totalBadDirt--;
+				badDirt = true;
 			}
 			totalDirt--;
 			possibleDirtLocations.add(new Pair<Integer,Integer>(x,y));
 			dirtRecord.addRecord(remainingSteps, totalDirt, totalBadDirt);
+			getCell(x, y).clean(time);
+			dirtRecord.addTimeRecord(badDirt, getCell(x, y).timeAlive());
 		}
-		getCell(x, y).clean();
-		
 	}
 	
 	//Change environment percepts
@@ -272,7 +274,7 @@ public class CleaningWorld
 						actionFinished = false;
 						if (cleanCountdown.containsKey(a) && cleanCountdown.get(a) == 0)
 						{
-							clean(agentLocation.getFirst(), agentLocation.getSecond()); 
+							clean(agentLocation.getFirst(), agentLocation.getSecond(),remainingSteps); 
 							cleanCountdown.remove(a);
 							actionFinished = true;
 						}
@@ -336,11 +338,11 @@ public class CleaningWorld
 				badDirtNum = (++badDirtNum) % currentSettings.getBadDirtInterval();
 				if (badDirtNum != 0)
 				{
-					addDirt(false);addDirt(false);addDirt(false);addDirt(false);addDirt(false);
+					addDirt(false,remainingSteps);addDirt(false,remainingSteps);addDirt(false,remainingSteps);addDirt(false,remainingSteps);addDirt(false,remainingSteps);
 				}
 				else
 				{
-					addDirt(true);addDirt(true);addDirt(true);
+					addDirt(true,remainingSteps);addDirt(true,remainingSteps);addDirt(true,remainingSteps);
 				}
 			}
 			for (UpdateToWorld u : worldListeners)
