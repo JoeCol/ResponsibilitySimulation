@@ -37,7 +37,7 @@ public class DirtRecord {
 		
 		public String toString()
 		{
-			return time + "," + dirtLevel + "," + badDirtLevel;
+			return "," + dirtLevel + "," + badDirtLevel;
 		}
 		
 	}
@@ -74,7 +74,7 @@ public class DirtRecord {
 		allRecords.add(new Record(time, dirtLevel, badDirtLevel));
 	}
 	
-	public void saveToFile(String directory)
+	public void saveToFile(String directory,int simulationTime)
 	{
 		try {
 			String filename = "DirtLevels_";
@@ -90,19 +90,62 @@ public class DirtRecord {
 			}
 			
 			FileWriter fw = new FileWriter(directory + filename + fileNo + ".csv");
-			fw.write("time,dirtLevel,badDirtLevel" + System.lineSeparator());
-			for (Record r : allRecords)
+			fw.write("remainingTime,dirtLevel,badDirtLevel" + System.lineSeparator());
+			Record r = allRecords.get(0);
+			int recordNumber = -1;
+			int actualTime = 0;
+			for (int i = simulationTime; i > 0; i--)
 			{
-				fw.write(r.toString() + System.lineSeparator());
+				actualTime = simulationTime - i;
+				if (recordNumber == -1)
+				{
+					if (i > r.getTime())
+					{
+						fw.write(actualTime + ",0,0" + System.lineSeparator());
+					}
+					else
+					{
+						recordNumber = 0;
+						while (r.getTime() == allRecords.get(recordNumber).getTime())
+						{
+							recordNumber++;
+						}
+						recordNumber--;
+						r = allRecords.get(recordNumber);
+						fw.write(actualTime + r.toString() + System.lineSeparator());
+					}
+				}
+				else
+				{
+					if (recordNumber != allRecords.size() - 1 && allRecords.get(recordNumber+1).time == i)
+					{
+						recordNumber++;
+						r = allRecords.get(recordNumber);
+						while (recordNumber != allRecords.size() - 1 && r.getTime() == allRecords.get(recordNumber).getTime())
+						{
+							recordNumber++;
+						}
+						if (recordNumber != allRecords.size() - 1)
+						{
+							recordNumber--;//Last instance of
+						}
+						else
+						{
+							//System.out.println("Last Record");
+						}
+						r = allRecords.get(recordNumber);
+					}
+					fw.write(actualTime + r.toString() + System.lineSeparator());
+				}
 			}
 			fw.flush();
 			fw.close();
 
 			fw = new FileWriter(directory + timeName + fileNo + ".csv");
 			fw.write("badDirt,timeAlive" + System.lineSeparator());
-			for (TimeRecord r : timeRecords)
+			for (TimeRecord tr : timeRecords)
 			{
-				fw.write(r.toString() + System.lineSeparator());
+				fw.write(tr.toString() + System.lineSeparator());
 			}
 			fw.flush();
 			fw.close();

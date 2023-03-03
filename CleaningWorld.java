@@ -16,6 +16,7 @@ public class CleaningWorld
 	Routes routeToZones = new Routes();
 	WorldCell[][] world;
 	int remainingSteps = 100;
+	int totalTime = 100;
 	int simSpeed = 350;
 	Settings currentSettings;
 	String saveLocation;
@@ -103,6 +104,7 @@ public class CleaningWorld
 	{
 		currentSettings = new Settings(0, 0, simSteps, dirtInt, badDirtInt, worldLoc);
 		simSpeed = _simSpeed;
+		totalTime = simSteps;
 		saveLocation = saveLoc;
 		try
 		{
@@ -254,7 +256,7 @@ public class CleaningWorld
 				}
 				else
 				{
-					System.out.println("Initial has received:" + m.content + " from " + m.sender);
+					//System.out.println("Initial has received:" + m.content + " from " + m.sender);
 				}
 			}
 			for (Agent a : agents)
@@ -387,6 +389,6 @@ public class CleaningWorld
 
 	private void save() 
 	{
-		dirtRecord.saveToFile(saveLocation);
+		dirtRecord.saveToFile(saveLocation,totalTime);
 	}
 }

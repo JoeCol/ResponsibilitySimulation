@@ -27,9 +27,10 @@ public class ResponsibilityGUI {
 		int simSteps = 10000;
 		int dirtInt = 15; 
 		int badDirtInt = 5;
-		String worldLoc = "21Rooms.world";
+		String worldLoc = "14Rooms.world";
 		boolean naive = false;
 		int simSpeed = 0;
+		boolean gui = true;
 		for (int i = 0; i < args.length; i++)
 		{
 			switch (args[i].toLowerCase())
@@ -53,6 +54,9 @@ public class ResponsibilityGUI {
 			case "speed":
 				simSpeed = Integer.valueOf(args[++i]);
 				break;
+			case "nogui":
+				gui = false;
+				break;
 			default:
 				System.out.println("Unrecognised argument: " + args[i]);
 			}
@@ -60,19 +64,21 @@ public class ResponsibilityGUI {
 		world = new CleaningWorld(simSteps, dirtInt, badDirtInt, worldLoc, saveLoc, simSpeed);
 		world.setup_agents(naive);
 		
-		EventQueue.invokeLater(new Runnable() 
+		if (gui)
 		{
-			public void run() {
-				try 
-				{
-					ResponsibilityGUI window = new ResponsibilityGUI();
-					window.frmResponsibilityGwen.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
+			EventQueue.invokeLater(new Runnable() 
+			{
+				public void run() {
+					try 
+					{
+						ResponsibilityGUI window = new ResponsibilityGUI();
+						window.frmResponsibilityGwen.setVisible(true);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-			}
-		});
-		
+			});
+		}
 		world.start();
 	}
 

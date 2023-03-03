@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch ResponsibilityGUI",
+            "request": "launch",
+            "mainClass": "ResponsibilityGUI",
+            "projectName": "ResponsibilitySimulation_e6bd807c"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"
@@ -15,7 +22,7 @@
             "name": "Launch Naive",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
-            "projectName": "ResponsibilitySimulation_804f003b",
+            "projectName": "ResponsibilitySimulation_e6bd807c",
             "args": "naive saveLoc \"output/naive15/\" speed 50"
         },
         {
@@ -23,8 +30,8 @@
             "name": "Launch Res",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
-            "projectName": "ResponsibilitySimulation_804f003b",
-            "args": "saveLoc \"output/Res15/\" dirtInterval 150 15 speed 50"
+            "projectName": "ResponsibilitySimulation_e6bd807c",
+            "args": "saveLoc \"output/Res15/\" dirtInterval 150 15 speed 0 nogui"
         }
     ]
 }

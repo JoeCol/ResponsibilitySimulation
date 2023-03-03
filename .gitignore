@@ -25,3 +25,6 @@ replay_pid*
 
 # DS Store
 .DS_Store
+*.phd
+*.txt
+*.trc
