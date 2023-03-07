@@ -203,7 +203,6 @@ public class CleaningWorld
 
 	private void clean(int x, int y, int time) 
 	{
-		
 		if (getCell(x,y).hasDirt())
 		{
 			boolean badDirt = false;
