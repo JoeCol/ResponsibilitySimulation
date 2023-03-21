@@ -94,13 +94,21 @@ public class Routes
 			costNext[1] = costs[travXY.getSecond() - 1][travXY.getFirst()];//Top middle
 			costNext[2] = costs[travXY.getSecond() - 1][travXY.getFirst() + 1];//Top right
 			costNext[3] = costs[travXY.getSecond()][travXY.getFirst() - 1];//middle left
-			//costNext[4] = costs[travXY.getFirst()][travXY.getSecond()]; //Middle square
-			costNext[4] = costs[travXY.getSecond()][travXY.getFirst() + 1]; //Middle right
-			costNext[5] = costs[travXY.getSecond() + 1][travXY.getFirst() - 1]; //bottom left square
-			costNext[6] = costs[travXY.getSecond() + 1][travXY.getFirst()]; //bottom middle square;
-			costNext[7] = costs[travXY.getSecond() + 1][travXY.getFirst() + 1]; //bottom left square;
+			costNext[4] = min; //Middle square
+			costNext[5] = costs[travXY.getSecond()][travXY.getFirst() + 1]; //Middle right
+			costNext[6] = costs[travXY.getSecond() + 1][travXY.getFirst() - 1]; //bottom left square
+			costNext[7] = costs[travXY.getSecond() + 1][travXY.getFirst()]; //bottom middle square;
+			costNext[8] = costs[travXY.getSecond() + 1][travXY.getFirst() + 1]; //bottom left square;
 			//Find minimum, and its index
-			for (int i = 0; i < 8; i++)
+			for (int i = 1; i < 9; i = i+2)
+			{
+				if (costNext[i] < min)
+				{
+					min = costNext[i];
+					minIndex = i;
+				}
+			}
+			for (int i = 0; i < 9; i = i+2)
 			{
 				if (costNext[i] < min)
 				{
@@ -130,19 +138,19 @@ public class Routes
 			/*case 4:
 				travXY = new IntegerPair<Integer,Integer>(travXY.getFirst(), travXY.getSecond());
 				break;*/
-			case 4:
+			case 5:
 				toRet.add(CleaningWorld.AgentAction.aa_moveright);
 				travXY = new Pair<Integer,Integer>(travXY.getFirst() + 1, travXY.getSecond());
 				break;
-			case 5:
+			case 6:
 				toRet.add(CleaningWorld.AgentAction.aa_movedownleft);
 				travXY = new Pair<Integer,Integer>(travXY.getFirst() - 1, travXY.getSecond() + 1);
 				break;
-			case 6:
+			case 7:
 				toRet.add(CleaningWorld.AgentAction.aa_movedown);
 				travXY = new Pair<Integer,Integer>(travXY.getFirst(), travXY.getSecond() + 1);
 				break;
-			case 7:
+			case 8:
 				toRet.add(CleaningWorld.AgentAction.aa_movedownright);
 				travXY = new Pair<Integer,Integer>(travXY.getFirst() + 1, travXY.getSecond() + 1);
 				break;

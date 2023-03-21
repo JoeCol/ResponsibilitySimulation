@@ -38,8 +38,8 @@ public class CleaningWorld
 	boolean naive;
 
 	//variables for dirt management
-	int dirtNum = 0;
-	int badDirtNum = 0;
+	Random dirtR = new Random();
+	Random badDirtR = new Random();
 	int totalDirt = 0;
 	int totalBadDirt = 0;
 	ArrayList<Pair<Integer,Integer>> possibleDirtLocations = new ArrayList<Pair<Integer,Integer>>();
@@ -241,7 +241,7 @@ public class CleaningWorld
 	{
 		for (UpdateToWorld u : worldListeners)
 		{
-			u.worldUpdate(remainingSteps, dirtNum, badDirtNum, world, agentLocations, agentColours);
+			u.worldUpdate(remainingSteps, totalDirt, totalBadDirt, world, agentLocations, agentColours);
 		}
 		while (remainingSteps > 0)
 		{
@@ -333,18 +333,16 @@ public class CleaningWorld
 			}
 			
 			//Do dirt step
-			dirtNum = (++dirtNum) % currentSettings.getDirtInterval();
+			//Do dirt step
+			int dirtNum = dirtR.nextInt(currentSettings.getDirtInterval());
+			int badDirtNum = badDirtR.nextInt(currentSettings.getBadDirtInterval());
 			if (dirtNum == 0)
 			{
-				badDirtNum = (++badDirtNum) % currentSettings.getBadDirtInterval();
-				if (badDirtNum != 0)
-				{
-					addDirt(false,remainingSteps);addDirt(false,remainingSteps);addDirt(false,remainingSteps);addDirt(false,remainingSteps);addDirt(false,remainingSteps);
-				}
-				else
-				{
-					addDirt(true,remainingSteps);addDirt(true,remainingSteps);addDirt(true,remainingSteps);
-				}
+				addDirt(false,remainingSteps);
+			}
+			if (badDirtNum == 0)
+			{
+				addDirt(true,remainingSteps);
 			}
 			for (UpdateToWorld u : worldListeners)
 			{
