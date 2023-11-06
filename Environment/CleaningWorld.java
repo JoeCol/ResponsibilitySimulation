@@ -1,3 +1,4 @@
+package Environment;
 import java.awt.Color;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -6,11 +7,22 @@ import java.util.HashMap;
 import java.util.ArrayDeque;
 import java.util.Random;
 
+import Message;
+import Pair;
+import Routes;
+import Settings;
+import Agents.Agent;
+import Agents.CleanerAgent;
+import Agents.ManagerAgent;
+import Agents.NaiveAgent;
+import Environment.WorldCell.DirtLevel;
+import Responsibility.SetupResponsibilities;
+
 interface UpdateToWorld{
 	void worldUpdate(int time, int dirt, int badDirt, WorldCell[][] world, HashMap<Agent, Pair<Integer,Integer>> agentLocations, HashMap<Agent, Color> agentColours);
 }
 
-public class CleaningWorld
+public class CleaningWorld extends Environment
 {
 	public enum AgentAction {aa_moveup, aa_movedown, aa_moveright, aa_moveleft, aa_clean, aa_observedirt, aa_moveupleft, aa_moveupright, aa_movedownleft, aa_movedownright, aa_finish, aa_none}
 	Routes routeToZones = new Routes();

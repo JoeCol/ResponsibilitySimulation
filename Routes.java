@@ -2,6 +2,9 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import Environment.CleaningWorld;
+import Environment.WorldCell;
+
 /*
  *  Precalculates best route to zone start
  */

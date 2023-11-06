@@ -3,6 +3,9 @@ import java.awt.Graphics;
 import java.awt.Color;
 import javax.swing.JPanel;
 
+import Agents.Agent;
+import Environment.WorldCell;
+
 public class CleaningPanel extends JPanel
 {
 	private static final long serialVersionUID = -9139436515145815500L;

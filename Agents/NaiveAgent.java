@@ -1,6 +1,14 @@
+package Agents;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import Message;
+import Pair;
+import Routes;
+import Environment.CleaningWorld;
+import Environment.WorldCell;
+import Environment.WorldCell.DirtLevel;
 public class NaiveAgent extends Agent
 {
     char zoneToClean = 0;

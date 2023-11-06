@@ -8,6 +8,12 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import javax.swing.border.BevelBorder;
 
+import Agents.Agent;
+import Environment.CleaningWorld;
+import Environment.UpdateToWorld;
+import Environment.WorldCell;
+import Responsibility.ResponsibilityModel;
+
 import java.util.HashMap;
 import javax.swing.JLabel;
 import java.awt.GridLayout;
@@ -16,7 +22,7 @@ public class ResponsibilityGUI {
 
 	private JFrame frmResponsibilityGwen;
 	private CleaningPanel visual = new CleaningPanel();
-	private static CleaningWorld world;
+	private static ResponsibilityModel world;
 	
 	/**
 	 * Launch the application.
@@ -61,8 +67,8 @@ public class ResponsibilityGUI {
 				System.out.println("Unrecognised argument: " + args[i]);
 			}
 		}
-		world = new CleaningWorld(simSteps, dirtInt, badDirtInt, worldLoc, saveLoc, simSpeed);
-		world.setup_agents(naive);
+		world = new ResponsibilityModel(simSteps, dirtInt, badDirtInt, worldLoc, saveLoc, simSpeed);
+		world.setup(naive);
 		
 		if (gui)
 		{

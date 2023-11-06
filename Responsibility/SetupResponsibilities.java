@@ -1,4 +1,8 @@
+package Responsibility;
 import java.util.ArrayList;
+
+import Responsibility.Task.TaskAction;
+import Responsibility.Task.TaskState;
 
 public class SetupResponsibilities 
 {

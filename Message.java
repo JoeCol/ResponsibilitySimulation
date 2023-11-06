@@ -1,3 +1,5 @@
+import Responsibility.Responsibility;
+
 public class Message {
     String sender;
     String receiver;

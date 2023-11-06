@@ -1,6 +1,19 @@
+package Agents;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import Message;
+import Pair;
+import Routes;
+import Environment.CleaningWorld;
+import Environment.WorldCell;
+import Environment.WorldCell.DirtLevel;
+import Responsibility.Responsibility;
+import Responsibility.SetupResponsibilities;
+import Responsibility.Task;
+import Responsibility.Task.TaskAction;
+import Responsibility.Task.TaskState;
 
 public class ManagerAgent extends Agent
 {

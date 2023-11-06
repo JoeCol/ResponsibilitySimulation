@@ -1,3 +1,4 @@
+package Environment;
 public class WorldCell
 {
 	public enum DirtLevel {dl_dirt,dl_badDirt,dl_clear};
