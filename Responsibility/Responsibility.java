@@ -1,8 +1,15 @@
 package Responsibility;
 import java.util.ArrayList;
 
-public class Responsibility {
+import Environment.Environment;
+
+public abstract class Responsibility {
+    
     public enum ResType {rt_repeat, rt_oneshot};
+    public enum ResEvaluation {re_nonstarted, re_started, re_failed, re_success};
+
+    public abstract ResEvaluation evaluate(Environment env);
+    
     private ResType type;
     private String name;
     private ArrayList<Responsibility> subRes;

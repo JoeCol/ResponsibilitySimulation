@@ -3,10 +3,9 @@ package Responsibility;
 import java.util.*;
 
 import Agents.Agent;
-import Environment.CleaningWorld;
 import Environment.Environment;
 
-interface NodeUpdate{
+public interface NodeUpdate{
 	void nodeUpdate(Environment env);
 }
 
@@ -21,12 +20,12 @@ public class ResponsibilityModel
     }    
     
     private Node nodet = new Node();
-    private boolean centralised = false;
+    private boolean centralised = false;//Todo: Still need to implement non-centralised
     private ArrayList<NodeUpdate> nodeListeners = new ArrayList<NodeUpdate>();
 
-    public void addWorldListeners(NodeUpdate u)
+    public void addWorldListeners(NodeUpdate nodeUpdate)
 	{
-		nodeListeners.add(u);
+		nodeListeners.add(nodeUpdate);
 	}
 
     public void sendNodeUpdates()
@@ -45,6 +44,8 @@ public class ResponsibilityModel
         delegation();
         responsibilitySelection();
         actions();
+        sendNodeUpdates();
+        //Record node
     }
 
     public void setup(ArrayList<Agent> ag, Environment env)
@@ -54,42 +55,43 @@ public class ResponsibilityModel
         node0.agents = ag;
         node0.env = env;
         node0.res = new Responsibilities();
-        nodes.add(node0);
+        sendNodeUpdates();
+        //Record node
     }
 
     private void resolution() 
     {
-        for (Responsibility r : nodet.res.ActiveRes)
+        for (Responsibility r : nodet.res.getActiveResponsibilities())
         {
-            if (r.failed())
+            switch (r.evaluate(nodet.env)) 
             {
-                nodet.Assignments.remove(r);
-                nodet.ActiveRes.add(r.getFailRes());
-            }
-            else if (r.fulfilled())
-            {
-                nodet.Assignments.remove(r);
+                case re_failed:
+                    nodet.res.removeAllAssignments(r);
+                    nodet.res.AddActiveRes(r.getFailRes());
+                    break;
+                case re_success:
+                    nodet.res.removeAllAssignments(r);
+                    break;
+                default:
+                    break;
             }
         }
     }
 
     private void assignment() 
     {
-        ArrayList<Responsibility> unassignedRes = nodet.res.minus(nodet.res.Assignments.res);
+        ArrayList<Responsibility> unassignedRes = nodet.res.getUnassignedResponsibilities();
         for (Responsibility r : unassignedRes)
         {
             ArrayList<Agent> acceptingAgent = new ArrayList<Agent>();
             for (Agent ag : nodet.agents)
             {
-                if (ag.accepts(initial,r))
+                if (ag.accepts(nodet.env,r))
                 {
                     acceptingAgent.add(ag);
                 }
             }
-            for (Agent ag : acceptingAgent)
-            {
-                nodet.res.Assignments.add(ag,r);
-            }
+            nodet.res.addAssignment(acceptingAgent,r, nodet.timet, Integer.MAX_VALUE);
         }
     }
 
@@ -99,23 +101,34 @@ public class ResponsibilityModel
         {
             for (Delegation d : ag.getDelegations())
             {
-                if (allAccept(ag, d.agents, d.res))
+                if (allAccept(ag, d.getAgents(), d.getResponsibility()))
                 {
-                    nodet.res.Assignments.addAll(ag, d.agents, d.res, d.length);
-                    nodet.res.Assignments.minus(ag,res);
+                    int end = Math.max(nodet.timet + d.getLength(), Integer.MAX_VALUE);
+                    nodet.res.addAssignment(ag, d.getAgents(), d.getResponsibility(), nodet.timet, end);
+                    //nodet.res.removeAssignment(ag, d.getResponsibility()); Change to theory, still responsible when delegated
                 }
             }
         }
+    }
+
+    private boolean allAccept(Agent ag, ArrayList<Agent> agents, Responsibility responsibility) {
+        for (Agent a : agents)
+        {
+            if (a.accepts(ag, nodet.env, responsibility))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void responsibilitySelection() 
     {
         for (Agent ag : nodet.agents)
         {
-            ArrayList<Responsibility> assigned = nodet.res.Assignments.getSorted(ag);
+            ArrayList<Responsibility> assigned = nodet.res.getSortedResponsibilitiesForAgent(ag);
             ArrayList<Responsibility> toWorkOn = new ArrayList<Responsibility>();
-            toWorkOn.add(assigned.get(0));//Problem if no responsibilities assigned
-            toWorkOn.add(largestNonConflict(assigned,ag));
+            toWorkOn.add(ag.largestNonConflict(assigned,ag));
             ag.setToWorkOn(toWorkOn);
         }
     }

@@ -1,4 +1,4 @@
-package Environment;
+package CleaningEnvironment;
 import java.awt.Color;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -8,23 +8,21 @@ import java.util.ArrayDeque;
 import java.util.Random;
 
 import Message;
-import Pair;
-import Routes;
 import Settings;
 import Agents.Agent;
 import Agents.CleanerAgent;
 import Agents.ManagerAgent;
 import Agents.NaiveAgent;
+import Environment.Environment;
+import Environment.WorldCell;
+import Environment.Environment.AgentAction;
 import Environment.WorldCell.DirtLevel;
+import Helper.Pair;
+import Helper.Routes;
 import Responsibility.SetupResponsibilities;
-
-interface UpdateToWorld{
-	void worldUpdate(int time, int dirt, int badDirt, WorldCell[][] world, HashMap<Agent, Pair<Integer,Integer>> agentLocations, HashMap<Agent, Color> agentColours);
-}
 
 public class CleaningWorld extends Environment
 {
-	public enum AgentAction {aa_moveup, aa_movedown, aa_moveright, aa_moveleft, aa_clean, aa_observedirt, aa_moveupleft, aa_moveupright, aa_movedownleft, aa_movedownright, aa_finish, aa_none}
 	Routes routeToZones = new Routes();
 	WorldCell[][] world;
 	int remainingSteps = 100;
@@ -32,8 +30,6 @@ public class CleaningWorld extends Environment
 	int simSpeed = 350;
 	Settings currentSettings;
 	String saveLocation;
-	ArrayDeque<Message> msgs = new ArrayDeque<Message>();
-	ArrayList<UpdateToWorld> worldListeners = new ArrayList<UpdateToWorld>();
 	ArrayList<Agent> agents = new ArrayList<Agent>();
 	HashMap<Agent, Color> agentColours = new HashMap<Agent, Color>();
 	HashMap<Character, ArrayList<Pair<Integer, Integer>>> zoneSquares = new HashMap<Character, ArrayList<Pair<Integer, Integer>>>();
@@ -57,37 +53,12 @@ public class CleaningWorld extends Environment
 	ArrayList<Pair<Integer,Integer>> possibleDirtLocations = new ArrayList<Pair<Integer,Integer>>();
 	DirtRecord dirtRecord = new DirtRecord();
 	
-	public Settings getSettings()
-	{
-		return currentSettings;
-	}
-	
-	public void addWorldListeners(UpdateToWorld u)
-	{
-		worldListeners.add(u);
-	}
-	
 	public void setup_agents(boolean naive) 
 	{
-		//Randomly position agents
-		this.naive = naive;
-		if (naive)
-		{
-			agents.add(new NaiveAgent("Naive 1",routeToZones,zoneSquares));
-			agents.add(new NaiveAgent("Naive 2",routeToZones,zoneSquares));
-			agents.add(new NaiveAgent("Naive 3",routeToZones,zoneSquares));
-		}
-		else
-		{
-			agents.add(new ManagerAgent("Manager",routeToZones,zoneSquares));
-			agents.add(new CleanerAgent("Cleaner 1",routeToZones,zoneSquares));
-			agents.add(new CleanerAgent("Cleaner 2",routeToZones,zoneSquares));
+		agents.add(new ManagerAgent("Manager",routeToZones,zoneSquares));
+		agents.add(new CleanerAgent("Cleaner 1",routeToZones,zoneSquares));
+		agents.add(new CleanerAgent("Cleaner 2",routeToZones,zoneSquares));
 			
-			SetupResponsibilities.generateDelegatedRes(zoneSquares.size() - 1);
-			msgs.add(new Message("initial", "Manager", "assignment", SetupResponsibilities.setupManagerResponsiblities(zoneSquares.size() - 1)));
-			msgs.add(new Message("initial", "Cleaner 1", "assignment", SetupResponsibilities.setupCleanerResponsiblity()));
-			msgs.add(new Message("initial", "Cleaner 2", "assignment", SetupResponsibilities.setupCleanerResponsiblity()));
-		}
 		agentColours.put(agents.get(0), new Color(r.nextInt(0xFFFFFF)));
 		agentColours.put(agents.get(1), new Color(r.nextInt(0xFFFFFF)));
 		agentColours.put(agents.get(2), new Color(r.nextInt(0xFFFFFF)));
@@ -166,6 +137,12 @@ public class CleaningWorld extends Environment
 		{
 			ex.printStackTrace();
 		}
+	}
+
+	public CleaningWorld(String[] copyOfRange) {
+    }
+
+    public CleaningWorld() {
 	}
 
 	private void observeDirt(Agent agent) 

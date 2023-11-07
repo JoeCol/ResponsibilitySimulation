@@ -8,9 +8,11 @@ import Message;
 import Pair;
 import Routes;
 import Environment.CleaningWorld;
+import Environment.Environment;
 import Environment.WorldCell;
 import Environment.CleaningWorld.AgentAction;
 import Environment.WorldCell.DirtLevel;
+import Responsibility.Delegation;
 import Responsibility.Responsibility;
 import Responsibility.Responsibility.ResType;
 
@@ -28,6 +30,14 @@ public abstract class Agent
     private Pair<Integer, Integer> location;
     private WorldCell[][] world;
     private HashMap<Character, ArrayList<Pair<Integer, Integer>>> zones;
+
+	protected ArrayList<Delegation> delegations = new ArrayList<Delegation>();
+
+	public abstract boolean accepts(Agent a, Environment env, Responsibility r);
+	public abstract boolean accepts(Environment env, Responsibility r);
+	public abstract int getCare(Responsibility res);
+	public abstract Responsibility largestNonConflict(ArrayList<Responsibility> assigned, Agent ag);
+	public abstract void setToWorkOn(ArrayList<Responsibility> toWorkOn);
 
     protected ArrayList<Responsibility> getMostCared(ArrayList<ArrayList<Responsibility>> possible) 
     {
@@ -250,4 +260,11 @@ public abstract class Agent
 			actions.remove();
 		}
     }
+	public ArrayList<Delegation> getDelegations() 
+	{
+		return delegations;
+	}
+	
+	
+	
 }
