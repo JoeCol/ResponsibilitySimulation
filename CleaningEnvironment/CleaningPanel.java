@@ -1,3 +1,4 @@
+package CleaningEnvironment;
 import java.util.HashMap;
 import java.awt.Graphics;
 import java.awt.Color;
@@ -5,6 +6,7 @@ import javax.swing.JPanel;
 
 import Agents.Agent;
 import Environment.WorldCell;
+import Helper.Pair;
 
 public class CleaningPanel extends JPanel
 {

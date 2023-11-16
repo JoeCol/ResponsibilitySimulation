@@ -5,10 +5,6 @@ import java.util.*;
 import Agents.Agent;
 import Environment.Environment;
 
-public interface NodeUpdate{
-	void nodeUpdate(Environment env);
-}
-
 public class ResponsibilityModel 
 {
     public class Node

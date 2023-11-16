@@ -8,7 +8,6 @@ import java.util.ArrayDeque;
 import java.util.Random;
 
 import Message;
-import Settings;
 import Agents.Agent;
 import Agents.CleanerAgent;
 import Agents.ManagerAgent;
@@ -88,7 +87,7 @@ public class CleaningWorld extends Environment
 		currentSettings = new Settings(0, 0, simSteps, dirtInt, badDirtInt, worldLoc);
 		simSpeed = _simSpeed;
 		totalTime = simSteps;
-		saveLocation = saveLoc;
+		saveLocation = saveLoc; 
 		try
 		{
 			zoneSquares.clear();

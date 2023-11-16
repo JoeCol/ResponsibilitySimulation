@@ -7,7 +7,7 @@ import java.awt.FlowLayout;
 import javax.swing.border.BevelBorder;
 
 import Agents.Agent;
-import Environment.CleaningWorld;
+import CleaningEnvironment.CleaningWorld;
 import Environment.Environment;
 import Responsibility.NodeUpdate;
 import Responsibility.ResponsibilityModel;

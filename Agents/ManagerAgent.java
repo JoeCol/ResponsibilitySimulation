@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import Message;
-import Pair;
-import Routes;
-import Environment.CleaningWorld;
+import CleaningEnvironment.CleaningWorld;
 import Environment.WorldCell;
 import Environment.WorldCell.DirtLevel;
+import Helper.Pair;
+import Helper.Routes;
 import Responsibility.Responsibility;
 import Responsibility.SetupResponsibilities;
 import Responsibility.Task;

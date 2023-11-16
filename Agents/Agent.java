@@ -5,13 +5,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import Message;
-import Pair;
-import Routes;
-import Environment.CleaningWorld;
+import CleaningEnvironment.CleaningWorld;
+import CleaningEnvironment.CleaningWorld.AgentAction;
 import Environment.Environment;
 import Environment.WorldCell;
-import Environment.CleaningWorld.AgentAction;
 import Environment.WorldCell.DirtLevel;
+import Helper.Pair;
+import Helper.Routes;
 import Responsibility.Delegation;
 import Responsibility.Responsibility;
 import Responsibility.Responsibility.ResType;
