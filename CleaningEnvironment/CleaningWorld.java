@@ -1,72 +1,56 @@
 package CleaningEnvironment;
 import java.awt.Color;
+import java.awt.Component;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.ArrayDeque;
 import java.util.Random;
+import java.nio.file.*;
+import java.io.FileWriter;
+import java.io.IOException;
 
-import Message;
 import Agents.Agent;
-import Agents.CleanerAgent;
-import Agents.ManagerAgent;
-import Agents.NaiveAgent;
+import CleaningEnvironment.DirtRecord.Record;
 import Environment.Environment;
 import Environment.WorldCell;
-import Environment.Environment.AgentAction;
-import Environment.WorldCell.DirtLevel;
 import Helper.Pair;
-import Helper.Routes;
-import Responsibility.SetupResponsibilities;
+import Responsibility.ResponsibilityModel.Node;
 
 public class CleaningWorld extends Environment
 {
-	Routes routeToZones = new Routes();
-	WorldCell[][] world;
-	int remainingSteps = 100;
-	int totalTime = 100;
-	int simSpeed = 350;
-	Settings currentSettings;
 	String saveLocation;
 	ArrayList<Agent> agents = new ArrayList<Agent>();
 	HashMap<Agent, Color> agentColours = new HashMap<Agent, Color>();
 	HashMap<Character, ArrayList<Pair<Integer, Integer>>> zoneSquares = new HashMap<Character, ArrayList<Pair<Integer, Integer>>>();
 	
-	HashMap<Agent, Pair<Integer,Integer>> agentLocations = new HashMap<Agent, Pair<Integer,Integer>>();
-	HashMap<Agent, String> workingOn = new HashMap<Agent, String>();
-	HashMap<Agent, HashMap<String, Integer>> agentCares = new HashMap<Agent, HashMap<String,Integer>>();
-	
 	Random r = new Random();
-	private HashMap<Agent, Integer> cleanCountdown = new HashMap<Agent, Integer>();
-	private Integer cleanLength = 30;
+	
+	int currentTime;
 	//Variables for naive cleaner
 	ArrayDeque<Character> naiveQueue = new ArrayDeque<Character>();
 	boolean naive;
 
+	//GUI Panel
+	CleaningPanel guiPanel = new CleaningPanel();
+
 	//variables for dirt management
-	Random dirtR = new Random();
-	Random badDirtR = new Random();
-	int totalDirt = 0;
-	int totalBadDirt = 0;
+	int dirtEveryX = 5;
+	int badDirtEveryX = 15;
 	ArrayList<Pair<Integer,Integer>> possibleDirtLocations = new ArrayList<Pair<Integer,Integer>>();
-	DirtRecord dirtRecord = new DirtRecord();
 	
-	public void setup_agents(boolean naive) 
+	public void setup_agents() 
 	{
-		agents.add(new ManagerAgent("Manager",routeToZones,zoneSquares));
-		agents.add(new CleanerAgent("Cleaner 1",routeToZones,zoneSquares));
-		agents.add(new CleanerAgent("Cleaner 2",routeToZones,zoneSquares));
-			
-		agentColours.put(agents.get(0), new Color(r.nextInt(0xFFFFFF)));
-		agentColours.put(agents.get(1), new Color(r.nextInt(0xFFFFFF)));
-		agentColours.put(agents.get(2), new Color(r.nextInt(0xFFFFFF)));
-		int x = 1;
-		int y = 1;
+		int i = 0;
+		Collections.shuffle(possibleDirtLocations);
 		for (Agent a : agents)
 		{
-			agentLocations.put(a, new Pair<Integer,Integer>(x++, y));
+			a.setNewLocation(possibleDirtLocations.get(i).getFirst(),possibleDirtLocations.get(i).getSecond());
+			agentColours.put(agents.get(i), new Color(r.nextInt(0xFFFFFF)));
+			i++;
 		}
+		Collections.shuffle(possibleDirtLocations);
 	}
 	
 	private void addDirt(boolean bad, int time) 
@@ -76,31 +60,36 @@ public class CleaningWorld extends Environment
 			Collections.shuffle(possibleDirtLocations);//to ensure that dirt is not evenly distributed as it is cleaned.
 			Pair<Integer,Integer> newDirt = possibleDirtLocations.remove(0);
 			getCell(newDirt.getFirst(),newDirt.getSecond()).setDirty(bad, time);
-			totalDirt++;
-			if (bad) {totalBadDirt++;}
-			dirtRecord.addRecord(remainingSteps, totalDirt, totalBadDirt);
 		}
 	}
 
-	public CleaningWorld(int simSteps, int dirtInt, int badDirtInt, String worldLoc, String saveLoc, int _simSpeed)
+	public CleaningWorld(String[] args) 
 	{
-		currentSettings = new Settings(0, 0, simSteps, dirtInt, badDirtInt, worldLoc);
-		simSpeed = _simSpeed;
-		totalTime = simSteps;
-		saveLocation = saveLoc; 
+		String worldFileLocation = "";
+		for (int i = 0; i < args.length; i++)
+		{
+			switch (args[i]) {
+				case "saveLoca":
+					saveLocation = args[++i];
+					break;
+				case "worldFile":
+					worldFileLocation = args[++i];
+					break;
+				default:
+					break;
+			}
+		}
 		try
 		{
 			zoneSquares.clear();
-			remainingSteps = currentSettings.getSimulationSteps();
-			RandomAccessFile fr = new RandomAccessFile(currentSettings.getWorldFileLocation(), "r");
+			RandomAccessFile fr = new RandomAccessFile(worldFileLocation, "r");
 			String line = fr.readLine();
-			currentSettings.setWidthOfMap(line.length());
+			int width = line.length();
 			int height = 1;
 			while (fr.readLine() != null) {height++;}
-			currentSettings.setHeightOfMap(height);
 			fr.seek(0);
 			
-			world = new WorldCell[currentSettings.getHeightOfMap()][currentSettings.getWidthOfMap()];
+			world = new WorldCell[height][width];
 			
 			for (int y = 0; y < world.length; y++)
 			{
@@ -114,9 +103,10 @@ public class CleaningWorld extends Environment
 					{
 						possibleDirtLocations.add(new Pair<Integer, Integer>(x,y));
 					}
-					world[y][x] = new WorldCell(zoneID);
+					world[y][x] = new CleaningWorldCell(zoneID);
 				}
 			}
+			fr.close();
 			/*for (int y = 0; y < getHeight(); y++)
 			{
 				for (int x = 0; x < getWidth(); x++)
@@ -125,232 +115,54 @@ public class CleaningWorld extends Environment
 				}
 				System.out.println();
 			}*/
-			//Add zones for naive cleaner
-			for (char zoneID : zoneSquares.keySet())
-			{
-				naiveQueue.add(zoneID);
-			}
-			naiveQueue.remove('0');//Remove wall room
 		}
 		catch (Exception ex)
 		{
 			ex.printStackTrace();
 		}
-	}
-
-	public CleaningWorld(String[] copyOfRange) {
     }
 
-    public CleaningWorld() {
+    public CleaningWorld() 
+	{
+
 	}
 
 	private void observeDirt(Agent agent) 
 	{
 		//Get zone for agent
-		Pair<Integer,Integer> l = agentLocations.get(agent);
-		char zone = getCell(l.getFirst(),l.getSecond()).getZoneID();
-		boolean hasDirt = false;
-		boolean hasBadDirt = false;
-		//System.out.println(zone + " observed");
-		for (int i = 0; i < world.length; i++)
+		char zone = getCell(agent.getX(),agent.getY()).getZoneID();
+		ArrayList<DirtObservation> observed = new ArrayList<DirtObservation>();
+		for (int y = 0; y < world.length; y++)
 		{
-			WorldCell[] row = world[i];
-			for (int j = 0; j < row.length; j++)
+			for (int x = 0; x < world[y].length; x++)
 			{
-				WorldCell cell = row[j];
-				if (cell.getZoneID() == zone)
+				if (getCell(x, y).getZoneID() == zone)
 				{
-					if (cell.hasBadDirt())
+					if (getCell(x, y).hasDirt())
 					{
-						hasDirt = true;
-						hasBadDirt = true;
-						//System.out.println(zone + " has bad dirt at " + j + " " + i);
-						break;
-					}
-					else if (cell.hasDirt())
-					{
-						hasDirt = true;
-						//System.out.println(zone + " has dirt at " + j + " " + i);
+						observed.add(new DirtObservation(x,y,getCell(x, y).hasBadDirt()));
 					}
 				}
 			}
 		}
-		if (hasBadDirt)
-		{
-			agent.observed(zone,WorldCell.DirtLevel.dl_badDirt);
-		}
-		else if (hasDirt)
-		{
-			agent.observed(zone,WorldCell.DirtLevel.dl_dirt);
-		}
-		else
-		{
-			agent.observed(zone,WorldCell.DirtLevel.dl_clear);
-		}
+		agent.addObservations(observed);
 	}
 
-	private void clean(int x, int y, int time) 
+	private void clean(Agent ag) 
 	{
-		if (getCell(x,y).hasDirt())
+		if (getCell(ag.getX(),ag.getY()).clean(currentTime))
 		{
-			boolean badDirt = false;
-			if (getCell(x,y).hasBadDirt())
-			{
-				totalBadDirt--;
-				badDirt = true;
-			}
-			totalDirt--;
-			possibleDirtLocations.add(new Pair<Integer,Integer>(x,y));
-			dirtRecord.addRecord(remainingSteps, totalDirt, totalBadDirt);
-			getCell(x, y).clean(time);
-			dirtRecord.addTimeRecord(badDirt, getCell(x, y).timeAlive());
+			possibleDirtLocations.add(new Pair<Integer,Integer>(ag.getX(),ag.getY()));
 		}
 	}
 	
 	//Change environment percepts
 	private void moveAgent(Agent ag, int x, int y)
 	{
-		agentLocations.put(ag, new Pair<Integer,Integer>(x,y));		
-	}
-
-	private Agent getAgent(String s)
-	{
-		for (Agent a : agents)
+		if (getCell(x, y).isTraversable())//Needs work for obstructed
 		{
-			if (a.getName().equals(s))
-			{
-				return a;
-			}
+			ag.setNewLocation(x,y);
 		}
-		return null;
-	}
-
-	public void start() 
-	{
-		for (UpdateToWorld u : worldListeners)
-		{
-			u.worldUpdate(remainingSteps, totalDirt, totalBadDirt, world, agentLocations, agentColours);
-		}
-		while (remainingSteps > 0)
-		{
-			while (!msgs.isEmpty())
-			{
-				Message m = msgs.pop();
-				if (!m.getReceiver().equals("initial"))
-				{
-					Agent a = getAgent(m.getReceiver());
-					a.receiveMessage(m);
-				}
-				else
-				{
-					//System.out.println("Initial has received:" + m.content + " from " + m.sender);
-				}
-			}
-			for (Agent a : agents)
-			{
-				Pair<Integer,Integer> agentLocation = agentLocations.get(a);
-				a.updateLocation(agentLocation, world);
-				if (naive)
-				{
-					a.updateNaiveList(naiveQueue);
-				}
-				a.reason();
-				AgentAction action = a.getAction();
-				boolean actionFinished = true;
-				switch (action)
-				{
-					case aa_clean:
-						actionFinished = false;
-						if (cleanCountdown.containsKey(a) && cleanCountdown.get(a) == 0)
-						{
-							clean(agentLocation.getFirst(), agentLocation.getSecond(),remainingSteps); 
-							cleanCountdown.remove(a);
-							actionFinished = true;
-						}
-						else if (cleanCountdown.containsKey(a))
-						{
-							cleanCountdown.put(a,cleanCountdown.get(a) - 1);
-						}
-						else
-						{
-							cleanCountdown.put(a,cleanLength);
-						}
-						break;
-					case aa_movedown:
-						moveAgent(a, agentLocation.getFirst(), agentLocation.getSecond() + 1);
-						break;
-					case aa_moveleft:
-						moveAgent(a, agentLocation.getFirst() - 1, agentLocation.getSecond());
-						break;
-					case aa_moveright:
-						moveAgent(a, agentLocation.getFirst() + 1, agentLocation.getSecond());
-						break;
-					case aa_moveup:
-						moveAgent(a, agentLocation.getFirst(), agentLocation.getSecond() - 1);
-						break;
-					case aa_movedownleft:
-						moveAgent(a, agentLocation.getFirst() - 1, agentLocation.getSecond() + 1);
-						break;
-					case aa_movedownright:
-						moveAgent(a, agentLocation.getFirst() + 1, agentLocation.getSecond() + 1);
-						break;
-					case aa_moveupleft:
-						moveAgent(a, agentLocation.getFirst() - 1, agentLocation.getSecond() - 1);
-						break;
-					case aa_moveupright:
-						moveAgent(a, agentLocation.getFirst() + 1, agentLocation.getSecond() - 1);
-						break;
-					case aa_observedirt:
-						observeDirt(a);
-						break;
-					case aa_finish:
-						a.finish();
-						break;
-					case aa_none:
-						break;
-					default:
-						break;
-				}
-				a.actionFinished(actionFinished);
-				while (a.hasMessageToSend())
-				{
-					Message m = a.getNextMessage();
-					msgs.add(m);
-				}
-				a.processFinished();
-			}
-			
-			//Do dirt step
-			//Do dirt step
-			int dirtNum = dirtR.nextInt(currentSettings.getDirtInterval());
-			int badDirtNum = badDirtR.nextInt(currentSettings.getBadDirtInterval());
-			if (dirtNum == 0)
-			{
-				addDirt(false,remainingSteps);
-			}
-			if (badDirtNum == 0)
-			{
-				addDirt(true,remainingSteps);
-			}
-			for (UpdateToWorld u : worldListeners)
-			{
-				u.worldUpdate(remainingSteps, totalDirt, totalBadDirt, world, agentLocations, agentColours);
-			}
-			remainingSteps--;
-
-			//Simulation speed
-			if (simSpeed > 0)
-			{
-				try {
-					Thread.sleep(simSpeed);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		save();
-		System.exit(0);
 	}
 
 	public int getHeight() 
@@ -363,17 +175,114 @@ public class CleaningWorld extends Environment
 		return world[0].length;
 	}
 
-	private WorldCell getCell(int x, int y) 
+	private CleaningWorldCell getCell(int x, int y) 
 	{
 		if (y == -1 || x == -1 || x >= world[0].length || y >= world.length)
 		{
 			System.out.println("Out of bounds (" + x + "," + y + ")");
 		}
-		return world[y][x];
+		return (CleaningWorldCell)world[y][x];
 	}
 
-	private void save() 
+	@Override
+	public void applyAction(Agent ag, AgentAction action) 
 	{
-		dirtRecord.saveToFile(saveLocation,totalTime);
+		switch (action) 
+		{
+			case aa_clean:
+				clean(ag);
+				break;
+			case aa_movedown:
+				moveAgent(ag, ag.getX(), ag.getY() + 1);
+				break;
+			case aa_moveleft:
+				moveAgent(ag, ag.getX() - 1, ag.getY());
+				break;
+			case aa_moveright:
+				moveAgent(ag, ag.getX() + 1, ag.getY());
+				break;
+			case aa_moveup:
+				moveAgent(ag, ag.getX(), ag.getY() - 1);
+				break;
+			case aa_movedownleft:
+				moveAgent(ag, ag.getX() - 1, ag.getY() + 1);
+				break;
+			case aa_movedownright:
+				moveAgent(ag, ag.getX() + 1, ag.getY() + 1);
+				break;
+			case aa_moveupleft:
+				moveAgent(ag, ag.getX() - 1, ag.getY() - 1);
+				break;
+			case aa_moveupright:
+				moveAgent(ag, ag.getX() + 1, ag.getY() - 1);
+				break;
+			case aa_observedirt:
+				observeDirt(ag);
+				break;
+			case aa_none:
+				break;
+			default:
+				break;
+		}
+	}
+
+	@Override
+	public void saveData(String saveLoc) 
+	{
+		try {
+			String filename = "DirtRecord_";
+			if (!Files.exists(Paths.get(saveLoc)))
+			{
+				Files.createDirectories(Paths.get(saveLoc));
+			}
+			int fileNo = 1;
+			while (Files.exists(Paths.get(saveLoc + filename + fileNo + ".csv")))
+			{
+				fileNo++;
+			}
+			
+			FileWriter fw = new FileWriter(saveLoc + filename + fileNo + ".csv");
+			fw.write("x,y,appeared,cleaned,isBadDirt" + System.lineSeparator());
+			for (int x = 0; x < getWidth(); x++)
+			{
+				for (int y = 0; y < getHeight(); y++)
+				{
+					DirtRecord dr = getCell(x, y).getDirtRecord();
+					for (Record r : dr.records)
+					{
+						fw.write(x + "," + y + "," + r.toString());
+					}
+				}
+			}
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	@Override
+	public Component getGUIPanel() {
+		return guiPanel;
+	}
+
+	@Override
+	public void updateGUIPanel(Node node) {
+		guiPanel.setWorld((CleaningWorldCell[][])world, agents, agentColours);
+	}
+
+	@Override
+	public void nodeUpdate(Node node) {
+		currentTime = node.timet;
+		agents = node.agents;
+		if (currentTime == 0)
+		{
+			setup_agents();
+		}
+		else if (currentTime % dirtEveryX == 0)//TODO fix this
+		{
+			addDirt(currentTime % badDirtEveryX == 0, currentTime);
+		}
 	}
 }

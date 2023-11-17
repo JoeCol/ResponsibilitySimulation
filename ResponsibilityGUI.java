@@ -7,6 +7,9 @@ import java.awt.FlowLayout;
 import javax.swing.border.BevelBorder;
 
 import Agents.Agent;
+import Agents.CleanerAgent;
+import Agents.ManagerAgent;
+import CleaningEnvironment.CleaningStartingResponsibilities;
 import CleaningEnvironment.CleaningWorld;
 import Environment.Environment;
 import Responsibility.NodeUpdate;
@@ -30,12 +33,9 @@ public class ResponsibilityGUI {
 		String saveLoc = "output/";
 		int simSpeed = 0;
 		boolean gui = true;
-		
-		String agentFile = "";
 		int simSteps = 10000;
-		/*int dirtInt = 15; 
-		int badDirtInt = 5;
-		String worldLoc = "14Rooms.world";*/
+		resModel = new ResponsibilityModel();
+		ArrayList<Agent> ags = new ArrayList<Agent>();
 		for (int i = 0; i < args.length; i++)
 		{
 			switch (args[i].toLowerCase())
@@ -43,21 +43,12 @@ public class ResponsibilityGUI {
 			case "simsteps":
 				simSteps = Integer.valueOf(args[++i]);
 				break;
-			case "saveloc":
-				saveLoc = args[++i];
-				break;
-			/*case "dirtinterval":
-				dirtInt = Integer.valueOf(args[++i]);
-				badDirtInt = Integer.valueOf(args[++i]);
-				break;
-			case "worldlocation":
-				worldLoc = args[++i];
-				break;*/
-			case "agents":
-				agentFile = args[++i];
-				break;
 			case "cleaning":
-				env = new CleaningWorld(Arrays.copyOfRange(args,i,args.length));
+				env = new CleaningWorld(Arrays.copyOfRange(args,i,args.length));//We are in cleaning scenario
+				ags.add(new CleanerAgent());
+				ags.add(new CleanerAgent());
+				ags.add(new ManagerAgent());
+				resModel.addStartingResponsibilities(CleaningStartingResponsibilities.getAll((CleaningWorld)env));
 				break;
 			case "speed":
 				simSpeed = Integer.valueOf(args[++i]);
@@ -69,9 +60,16 @@ public class ResponsibilityGUI {
 				System.out.println("Unrecognised argument: " + args[i]);
 			}
 		}
-		resModel = new ResponsibilityModel();
-		resModel.setup(loadAgentsFromFile(agentFile), env);
 		
+		resModel.addWorldListeners(new NodeUpdate() {
+
+			@Override
+			public void nodeUpdate(Node node) {
+				env.nodeUpdate(node);
+			}
+			
+		});
+		resModel.setup(ags, env);
 		if (gui)
 		{
 			EventQueue.invokeLater(new Runnable() 
@@ -103,10 +101,6 @@ public class ResponsibilityGUI {
 			}
 		}
 		env.saveData(saveLoc);
-	}
-
-	private static ArrayList<Agent> loadAgentsFromFile(String agentFile) {
-		return null;
 	}
 
 	/**

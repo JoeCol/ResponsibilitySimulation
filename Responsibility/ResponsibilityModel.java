@@ -9,9 +9,9 @@ public class ResponsibilityModel
 {
     public class Node
     {
-        int timet;
-        Environment env;
-        ArrayList<Agent> agents;
+        public int timet;
+        public Environment env;
+        public ArrayList<Agent> agents;
         Responsibilities res; //Only in centralised version
     }    
     
@@ -28,7 +28,7 @@ public class ResponsibilityModel
     {
         for (NodeUpdate u : nodeListeners)
 		{
-			u.nodeUpdate(nodet.env);
+			u.nodeUpdate(nodet);
 		}
     }
 
@@ -37,11 +37,20 @@ public class ResponsibilityModel
         nodet.timet = nodet.timet++;
         resolution();
         assignment();
+        reason();
         delegation();
         responsibilitySelection();
         actions();
         sendNodeUpdates();
         //Record node
+    }
+
+    private void reason() 
+    {
+        for (Agent ag : nodet.agents)
+        {
+            ag.reason();
+        }
     }
 
     public void setup(ArrayList<Agent> ag, Environment env)
@@ -133,7 +142,12 @@ public class ResponsibilityModel
     {
         for (Agent ag : nodet.agents)
         {
-            nodet.env.applyAction(ag.getAction());
+            nodet.env.applyAction(ag, ag.getAction());
         }
+    }
+
+    public void addStartingResponsibilities(ArrayList<Responsibility> all) 
+    {
+        nodet.res.AddActiveRes(all);
     }
 }

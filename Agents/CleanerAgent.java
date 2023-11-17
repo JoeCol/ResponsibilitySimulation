@@ -1,132 +1,74 @@
 package Agents;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashMap;
-
-import Message;
-import CleaningEnvironment.CleaningWorld;
-import CleaningEnvironment.CleaningWorld.AgentAction;
-import Environment.WorldCell;
-import Environment.WorldCell.DirtLevel;
-import Helper.Pair;
-import Helper.Routes;
+import Environment.Environment;
+import Environment.Environment.AgentAction;
+import Responsibility.Delegation;
 import Responsibility.Responsibility;
-import Responsibility.Task;
-import Responsibility.Task.TaskAction;
-import Responsibility.Task.TaskState;
 
 public class CleanerAgent extends Agent
 {
-    private boolean sentValueLast = false;
-    private Responsibility workingOn;
-
-    public CleanerAgent(String _name, Routes routes, HashMap<Character, ArrayList<Pair<Integer, Integer>>> _zones) {
-        super(_name, routes, _zones);
-    }
-
-    private void processRes(Responsibility attachedRes, String assignee) 
-    {
-        //Assuming capable
-        addResponsibility(attachedRes, assignee);
-        if (attachedRes.getName().matches("cleanBadDirt[A-Z]"))
-        {
-            careRes.put(attachedRes, 10);
-        }
-        else if (attachedRes.getName().matches("clean[A-Z]"))
-        {
-            careRes.put(attachedRes, 1);
-        }
-        else if (!attachedRes.getName().matches("cleanBadDirt[A-Z]|clean[A-Z]"))
-        {
-            careRes.put(attachedRes, 0);
-        }
-        for (Responsibility subRes : attachedRes.getSubRes())
-        {
-            processRes(subRes, assignee);
-        }
+    @Override
+    public boolean accepts(Agent a, Environment env, Responsibility r) {
+        return r.getName().contains("cleanSquare");
     }
 
     @Override
-    public void receiveMessage(Message m) 
-    {
-        if (m.content.equals("assignment"))
-        {
-            processRes(m.attachedRes, m.sender);
-        }
+    public boolean accepts(Environment env, Responsibility r) {
+        return r.getName().contains("cleanSquare");
     }
 
     @Override
-    public void reason() {
-        if (getDirty())
-        {
-            ArrayList<ArrayList<Responsibility>> res = getViable();
-            ArrayList<Responsibility> toDo = getMostCared(res);
-            for (Responsibility r : toDo)
-            {
-                Task t = r.getTask();
-                for (Task.TaskAction a : t.getActions())
-                {
-                    if (actions.size() == 0 && a.actionToDo.matches("cleanroom[A-Z]"))
-                    {
-                        if (workingOn != null && r.getName() != workingOn.getName())
-                        {
-                            actions.clear();
-                        }
-                        char zone = a.actionToDo.charAt(a.actionToDo.length() - 1);
-                        workingOn = r;
-                        goToZone(zone);
-                        cleanZone(zone);
-                        actions.add(CleaningWorld.AgentAction.aa_finish);
-                    }
-                    else if (a.actionToDo.equals("sendStatus"))
-                    {
-                        boolean busy = actions.size() > 0;
-                        if (busy != sentValueLast)
-                        {
-                            msgs.add(new Message(getName(), "Manager", "isBusy(" + busy + ")", null));
-                            sentValueLast = busy;
-                        }
-                    }
-                }
-                for (Task.TaskState s : t.getStates())
-                {
-                    switch (s.stateToCheck)
-                    {
-                        default:
-                            break;
-                    }
-                }
-            }
-            setDirty(false);
-        }  
-    }
-
-    @Override
-    public void finish() 
-    {
-        finishedRes.add(workingOn);
-        workingOn = null;
-    }
-
-    @Override
-    public void updateNaiveList(ArrayDeque<Character> naiveQueue) {
+    public int getCare(Responsibility res) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateNaiveList'");
+        throw new UnsupportedOperationException("Unimplemented method 'getCare'");
     }
 
     @Override
-    public void observed(char zone, WorldCell.DirtLevel dl) {
+    public Responsibility largestNonConflict(ArrayList<Responsibility> assigned, Agent ag) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'largestNonConflict'");
+    }
+
+    @Override
+    public void setToWorkOn(ArrayList<Responsibility> toWorkOn) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setToWorkOn'");
+    }
+
+    @Override
+    public void observed() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'observed'");
     }
 
     @Override
     public void processFinished() {
-        for (Responsibility r : finishedRes)
-        {
-            removeResponsibility(r);
-        }
-        finishedRes.clear();
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'processFinished'");
+    }
+
+    @Override
+    public void reason() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'reason'");
+    }
+
+    @Override
+    public void finish() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'finish'");
+    }
+
+    @Override
+    public ArrayList<Delegation> getDelegations() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getDelegations'");
+    }
+
+    @Override
+    public AgentAction getAction() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAction'");
     }
     
 }

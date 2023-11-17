@@ -3,17 +3,16 @@ import java.util.HashMap;
 import java.awt.Graphics;
 import java.awt.Color;
 import javax.swing.JPanel;
+import java.util.ArrayList;
 
 import Agents.Agent;
-import Environment.WorldCell;
-import Helper.Pair;
 
 public class CleaningPanel extends JPanel
 {
 	private static final long serialVersionUID = -9139436515145815500L;
-	WorldCell[][] world;
-	private HashMap<Agent, Pair<Integer,Integer>> locations;
+	CleaningWorldCell[][] world;
 	private HashMap<Agent, Color> colours;
+	private ArrayList<Agent> agents;
 	
 	public CleaningPanel()
 	{
@@ -63,11 +62,10 @@ public class CleaningPanel extends JPanel
 				}
 			}
 			
-			for (Agent ag : locations.keySet())
+			for (Agent ag : agents)
 			{
-				Pair<Integer,Integer> l = locations.get(ag);
-				int x = l.getFirst();
-				int y = l.getSecond();
+				int x = ag.getX();
+				int y = ag.getY();
 				int tx = 1+(x * widthOfCell);
 				int ty = g.getFontMetrics().getHeight() + (y * heightOfCell);
 				g.setColor(colours.get(ag));
@@ -79,10 +77,10 @@ public class CleaningPanel extends JPanel
 		}
 	}
 
-	public void setWorld(WorldCell[][] world2, HashMap<Agent, Pair<Integer,Integer>> agentLocations,
+	public void setWorld(CleaningWorldCell[][] world2, ArrayList<Agent> _agents,
 			HashMap<Agent, Color> agentColours) {
 		world = world2;
-		locations = agentLocations;
+		agents = _agents;
 		colours = agentColours;
 		invalidate();
 		repaint();	

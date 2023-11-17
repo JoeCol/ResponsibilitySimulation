@@ -1,36 +1,19 @@
 package Agents;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 
-import Message;
-import CleaningEnvironment.CleaningWorld;
-import CleaningEnvironment.CleaningWorld.AgentAction;
+import CleaningEnvironment.DirtObservation;
 import Environment.Environment;
-import Environment.WorldCell;
-import Environment.WorldCell.DirtLevel;
-import Helper.Pair;
-import Helper.Routes;
+import Environment.Environment.AgentAction;
 import Responsibility.Delegation;
 import Responsibility.Responsibility;
-import Responsibility.Responsibility.ResType;
 
 public abstract class Agent 
 {
     private String name;
-	private boolean dirty = false;
-    protected ArrayDeque<Message> msgs = new ArrayDeque<Message>();
-    protected ArrayList<Responsibility> responsibilities = new ArrayList<Responsibility>();
-	protected HashMap<Responsibility,String> assigned = new HashMap<Responsibility,String>();
-	protected ArrayList<Responsibility> finishedRes = new ArrayList<Responsibility>();
+	private int x;
+	private int y;
 	protected HashMap<Responsibility,Integer> careRes = new HashMap<Responsibility,Integer>();
-    protected ArrayDeque<CleaningWorld.AgentAction> actions = new ArrayDeque<CleaningWorld.AgentAction>();
-    private Routes routePlanner;
-    private Pair<Integer, Integer> location;
-    private WorldCell[][] world;
-    private HashMap<Character, ArrayList<Pair<Integer, Integer>>> zones;
-
 	protected ArrayList<Delegation> delegations = new ArrayList<Delegation>();
 
 	public abstract boolean accepts(Agent a, Environment env, Responsibility r);
@@ -38,6 +21,12 @@ public abstract class Agent
 	public abstract int getCare(Responsibility res);
 	public abstract Responsibility largestNonConflict(ArrayList<Responsibility> assigned, Agent ag);
 	public abstract void setToWorkOn(ArrayList<Responsibility> toWorkOn);
+	public abstract void observed();
+	public abstract void processFinished();
+    public abstract void reason();
+    public abstract void finish();
+	public abstract ArrayList<Delegation> getDelegations();
+	public abstract AgentAction getAction();
 
     protected ArrayList<Responsibility> getMostCared(ArrayList<ArrayList<Responsibility>> possible) 
     {
@@ -91,180 +80,33 @@ public abstract class Agent
 	protected ArrayList<ArrayList<Responsibility>> getViable() 
     {
 		ArrayList<ArrayList<Responsibility>> viableLst = new ArrayList<ArrayList<Responsibility>>();
-		ArrayList<Responsibility> commonLst = new ArrayList<Responsibility>();
-		ArrayList<Responsibility> individual = new ArrayList<Responsibility>();
-
-	    for (Responsibility res : responsibilities)
-		{
-			if (res.getName().matches("cleanBadDirt[A-Z]"))
-			{
-				individual.add(res);
-			}
-			else if (res.getName().matches("clean[A-Z]"))
-			{
-				individual.add(res);
-			}
-			else if (res.getName().matches("observe[A-Z]"))
-			{
-				individual.add(res);
-			}
-			else if (!res.getName().matches("cleanBadDirt[A-Z]|clean[A-Z]|observe[A-Z]"))
-			{
-				commonLst.add(res);
-			}
-		}
-		if (individual.size() > 0)
-		{
-			for (Responsibility res : individual)
-			{
-				ArrayList<Responsibility> tmp = new ArrayList<Responsibility>();
-				tmp.addAll(commonLst);
-                tmp.add(res);
-				tmp.sort(new Comparator<Responsibility>() {
-					@Override
-					public int compare(Responsibility o1, Responsibility o2) {
-						int rst = careRes.get(o1).compareTo(careRes.get(o2));
-						return -rst;//largest first
-					}
-					
-				});
-				viableLst.add(tmp);
-			}
-		}
-		else
-		{
-			viableLst.add(commonLst);
-		}
 		
 		return viableLst;
 	}
-
-    protected void cleanZone(char zone)
-    {
-        ArrayList<Pair<Integer, Integer>> allSquares = zones.get(zone);
-		Pair<Integer, Integer> prevSquare = allSquares.get(0);
-		Pair<Integer, Integer> nextSquare;
-		actions.add(CleaningWorld.AgentAction.aa_clean);
-		for (int i = 1; i < allSquares.size(); i++)
-		{
-			nextSquare = allSquares.get(i);
-			actions.addAll(routePlanner.actionsToZone(world, prevSquare, nextSquare));
-			actions.add(CleaningWorld.AgentAction.aa_clean);
-			prevSquare = nextSquare;
-		}
-    }
-
-    //Add move actions to agentactions stack
-	protected void goToZone(char zone) 
-	{
-		ArrayDeque<CleaningWorld.AgentAction> moveActions = routePlanner.actionsToZone(world, location, zones.get(zone).get(0));
-        actions.addAll(moveActions);
-	}
-
-	protected void observe(char zone)
-	{
-		actions.add(CleaningWorld.AgentAction.aa_observedirt);
-	}
-
-	protected boolean getDirty()
-	{
-		return dirty;
-	}
-
-	protected void setDirty(boolean _dirty)
-	{
-		dirty = _dirty;
-	}
-
-    protected void addResponsibility(Responsibility r, String assignee)
-    {
-        responsibilities.add(r);
-		assigned.put(r, assignee);
-		dirty = true;
-		msgs.add(new Message(getName(), assignee, "accepted", r));
-    }
-
-	protected void removeResponsibility(Responsibility r)
-    {
-        responsibilities.remove(r);
-		String assignee = assigned.get(r);
-		assigned.remove(r);
-		msgs.add(new Message(name, assignee, "finished", r));
-		dirty = true;
-		if (r.getType() == Responsibility.ResType.rt_repeat)
-		{
-			addResponsibility(r, assignee);
-		}
-    }
-
-	protected void informComplete(Responsibility r)
-	{
-		String assignee = assigned.get(r);
-		msgs.add(new Message(name, assignee, "finished", r));
-	}
-
-	protected void delegate(Responsibility r, String to)
-	{
-		Message toDelegate = new Message(name, to, "assignment", r);
-		msgs.add(toDelegate);
-		assigned.put(r, to);
-	}
-
-    public abstract void observed(char zone, WorldCell.DirtLevel dl);
-    public abstract void receiveMessage(Message m);
-	public abstract void processFinished();
-    public abstract void reason();
-    public abstract void finish();
-
-    public void updateLocation(Pair<Integer,Integer> _location, WorldCell[][] _world)
-    {
-        location = _location;
-        world = _world;
-    }
-
-    public CleaningWorld.AgentAction getAction()
-    {
-        if (actions.isEmpty())
-        {
-            return CleaningWorld.AgentAction.aa_none;
-        }
-        return actions.peek();
-    }
-
-    public Agent(String _name, Routes routes, HashMap<Character, ArrayList<Pair<Integer, Integer>>> _zones)
-    {
-        name = _name;
-        routePlanner = routes;
-        zones = _zones;
-    }
-
-    public boolean hasMessageToSend()
-    {
-        return !msgs.isEmpty();
-    }
-
-    public Message getNextMessage() {
-        return msgs.poll();
-    }
 
     public String getName() {
         return name;
     }
 
-    public abstract void updateNaiveList(ArrayDeque<Character> naiveQueue);
-
-    public void actionFinished(boolean actionFinished) 
+	public int getX()
 	{
-		if (actions.size() > 0 && actionFinished)
-		{
-			actions.remove();
-		}
-    }
-	public ArrayList<Delegation> getDelegations() 
-	{
-		return delegations;
+		return x;
 	}
+
+	public int getY()
+	{
+		return y;
+	}
+	public void setNewLocation(int x2, int y2) 
+	{
+		x = x2;
+		y = y2;
+	}
+
+    public void addObservations(ArrayList<DirtObservation> observed) {
+    }
 	
+    
 	
 	
 }
