@@ -8,70 +8,63 @@ import Responsibility.Responsibility;
 public class ManagerAgent extends Agent
 {
 
+    public ManagerAgent(String _name) {
+        super(_name);
+    }
+
     @Override
     public boolean accepts(Agent a, Environment env, Responsibility r) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accepts'");
+        return true;
     }
 
     @Override
     public boolean accepts(Environment env, Responsibility r) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accepts'");
+        return true;
     }
 
     @Override
     public int getCare(Responsibility res) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCare'");
+        return 0;
     }
 
     @Override
     public Responsibility largestNonConflict(ArrayList<Responsibility> assigned, Agent ag) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'largestNonConflict'");
+        return null;
     }
 
     @Override
     public void setToWorkOn(ArrayList<Responsibility> toWorkOn) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setToWorkOn'");
+        // TODO
     }
 
     @Override
     public void observed() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'observed'");
+        // TODO
     }
 
     @Override
     public void processFinished() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'processFinished'");
+        // TODO 
     }
 
     @Override
     public void reason() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'reason'");
+        // TODO 
     }
 
     @Override
     public void finish() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'finish'");
+        // TODO 
     }
 
     @Override
     public ArrayList<Delegation> getDelegations() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getDelegations'");
+        return this.delegations;
     }
 
     @Override
     public AgentAction getAction() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAction'");
+        return AgentAction.aa_none;
     }
 	
 }

@@ -14,7 +14,6 @@ import java.io.IOException;
 import Agents.Agent;
 import CleaningEnvironment.DirtRecord.Record;
 import Environment.Environment;
-import Environment.WorldCell;
 import Helper.Pair;
 import Responsibility.ResponsibilityModel.Node;
 
@@ -68,11 +67,11 @@ public class CleaningWorld extends Environment
 		String worldFileLocation = "";
 		for (int i = 0; i < args.length; i++)
 		{
-			switch (args[i]) {
-				case "saveLoca":
+			switch (args[i].toLowerCase()) {
+				case "savelocation":
 					saveLocation = args[++i];
 					break;
-				case "worldFile":
+				case "worldfile":
 					worldFileLocation = args[++i];
 					break;
 				default:
@@ -89,7 +88,7 @@ public class CleaningWorld extends Environment
 			while (fr.readLine() != null) {height++;}
 			fr.seek(0);
 			
-			world = new WorldCell[height][width];
+			world = new CleaningWorldCell[height][width];
 			
 			for (int y = 0; y < world.length; y++)
 			{
@@ -103,7 +102,7 @@ public class CleaningWorld extends Environment
 					{
 						possibleDirtLocations.add(new Pair<Integer, Integer>(x,y));
 					}
-					world[y][x] = new CleaningWorldCell(zoneID);
+					world[y][x] = new CleaningWorldCell(zoneID,5);
 				}
 			}
 			fr.close();
@@ -131,7 +130,6 @@ public class CleaningWorld extends Environment
 	{
 		//Get zone for agent
 		char zone = getCell(agent.getX(),agent.getY()).getZoneID();
-		ArrayList<DirtObservation> observed = new ArrayList<DirtObservation>();
 		for (int y = 0; y < world.length; y++)
 		{
 			for (int x = 0; x < world[y].length; x++)
@@ -140,12 +138,12 @@ public class CleaningWorld extends Environment
 				{
 					if (getCell(x, y).hasDirt())
 					{
-						observed.add(new DirtObservation(x,y,getCell(x, y).hasBadDirt()));
+						agent.addObservation(new DirtObservation(x,y,getCell(x, y).hasBadDirt()));
 					}
 				}
 			}
 		}
-		agent.addObservations(observed);
+		
 	}
 
 	private void clean(Agent ag) 
@@ -227,21 +225,21 @@ public class CleaningWorld extends Environment
 	}
 
 	@Override
-	public void saveData(String saveLoc) 
+	public void saveData() 
 	{
 		try {
 			String filename = "DirtRecord_";
-			if (!Files.exists(Paths.get(saveLoc)))
+			if (!Files.exists(Paths.get(saveLocation)))
 			{
-				Files.createDirectories(Paths.get(saveLoc));
+				Files.createDirectories(Paths.get(saveLocation));
 			}
 			int fileNo = 1;
-			while (Files.exists(Paths.get(saveLoc + filename + fileNo + ".csv")))
+			while (Files.exists(Paths.get(saveLocation + filename + fileNo + ".csv")))
 			{
 				fileNo++;
 			}
 			
-			FileWriter fw = new FileWriter(saveLoc + filename + fileNo + ".csv");
+			FileWriter fw = new FileWriter(saveLocation + filename + fileNo + ".csv");
 			fw.write("x,y,appeared,cleaned,isBadDirt" + System.lineSeparator());
 			for (int x = 0; x < getWidth(); x++)
 			{

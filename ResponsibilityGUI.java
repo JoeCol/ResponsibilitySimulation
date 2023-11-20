@@ -23,14 +23,13 @@ public class ResponsibilityGUI {
 
 	private JFrame frmResponsibilityGwen;
 	private static ResponsibilityModel resModel;
-	private static Environment env = new CleaningWorld();
+	private static Environment env;
 	
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) 
 	{
-		String saveLoc = "output/";
 		int simSpeed = 0;
 		boolean gui = true;
 		int simSteps = 10000;
@@ -44,11 +43,12 @@ public class ResponsibilityGUI {
 				simSteps = Integer.valueOf(args[++i]);
 				break;
 			case "cleaning":
-				env = new CleaningWorld(Arrays.copyOfRange(args,i,args.length));//We are in cleaning scenario
-				ags.add(new CleanerAgent());
-				ags.add(new CleanerAgent());
-				ags.add(new ManagerAgent());
+				env = new CleaningWorld(Arrays.copyOfRange(args,i + 1,args.length));//We are in cleaning scenario
+				ags.add(new CleanerAgent("C1"));
+				ags.add(new CleanerAgent("C2"));
+				ags.add(new ManagerAgent("M1"));
 				resModel.addStartingResponsibilities(CleaningStartingResponsibilities.getAll((CleaningWorld)env));
+				i = args.length;//Stop processing arguments
 				break;
 			case "speed":
 				simSpeed = Integer.valueOf(args[++i]);
@@ -69,7 +69,6 @@ public class ResponsibilityGUI {
 			}
 			
 		});
-		resModel.setup(ags, env);
 		if (gui)
 		{
 			EventQueue.invokeLater(new Runnable() 
@@ -85,6 +84,7 @@ public class ResponsibilityGUI {
 				}
 			});
 		}
+		resModel.setup(ags, env);
 		for (int i = 0; i < simSteps; i++)
 		{
 			resModel.doStep();
@@ -100,7 +100,7 @@ public class ResponsibilityGUI {
 				}
 			}
 		}
-		env.saveData(saveLoc);
+		env.saveData();
 	}
 
 	/**

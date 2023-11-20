@@ -9,6 +9,16 @@ public class Responsibilities
     private ArrayList<Responsibility> activeResponsibilities = new ArrayList<Responsibility>();
     private HashSet<Assignment> assignments = new HashSet<Assignment>();
 
+    public Responsibilities() 
+    {
+        
+    }
+
+    public Responsibilities(ArrayList<Responsibility> startingResponsibilities) 
+    {
+        activeResponsibilities.addAll(startingResponsibilities);
+    }
+
     public ArrayList<Responsibility> getActiveResponsibilities() 
     {
         return activeResponsibilities;

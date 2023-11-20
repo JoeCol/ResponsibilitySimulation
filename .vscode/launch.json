@@ -9,7 +9,8 @@
             "name": "Launch ResponsibilityGUI",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
-            "projectName": "ResponsibilitySimulation_e6bd807c"
+            "projectName": "ResponsibilitySimulation_e6bd807c",
+            "args": "cleaning saveLocation /Test/ worldFile 14Rooms.world"
         },
         {
             "type": "java",

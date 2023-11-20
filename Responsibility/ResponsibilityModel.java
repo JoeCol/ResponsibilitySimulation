@@ -18,6 +18,7 @@ public class ResponsibilityModel
     private Node nodet = new Node();
     private boolean centralised = false;//Todo: Still need to implement non-centralised
     private ArrayList<NodeUpdate> nodeListeners = new ArrayList<NodeUpdate>();
+    private ArrayList<Responsibility> startingResponsibilities = new ArrayList<Responsibility>();
 
     public void addWorldListeners(NodeUpdate nodeUpdate)
 	{
@@ -34,7 +35,7 @@ public class ResponsibilityModel
 
     public void doStep()
     {
-        nodet.timet = nodet.timet++;
+        nodet.timet++;
         resolution();
         assignment();
         reason();
@@ -55,11 +56,11 @@ public class ResponsibilityModel
 
     public void setup(ArrayList<Agent> ag, Environment env)
     {
-        Node node0 = new Node();
-        node0.timet = 0;
-        node0.agents = ag;
-        node0.env = env;
-        node0.res = new Responsibilities();
+        nodet = new Node();
+        nodet.timet = 0;
+        nodet.agents = ag;
+        nodet.env = env;
+        nodet.res = new Responsibilities(startingResponsibilities);
         sendNodeUpdates();
         //Record node
     }
@@ -148,6 +149,6 @@ public class ResponsibilityModel
 
     public void addStartingResponsibilities(ArrayList<Responsibility> all) 
     {
-        nodet.res.AddActiveRes(all);
+        startingResponsibilities = all;
     }
 }

@@ -2,8 +2,8 @@ package Agents;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import CleaningEnvironment.DirtObservation;
 import Environment.Environment;
+import Environment.Observation;
 import Environment.Environment.AgentAction;
 import Responsibility.Delegation;
 import Responsibility.Responsibility;
@@ -15,6 +15,7 @@ public abstract class Agent
 	private int y;
 	protected HashMap<Responsibility,Integer> careRes = new HashMap<Responsibility,Integer>();
 	protected ArrayList<Delegation> delegations = new ArrayList<Delegation>();
+	protected ArrayList<Observation> observations = new ArrayList<Observation>();
 
 	public abstract boolean accepts(Agent a, Environment env, Responsibility r);
 	public abstract boolean accepts(Environment env, Responsibility r);
@@ -27,6 +28,13 @@ public abstract class Agent
     public abstract void finish();
 	public abstract ArrayList<Delegation> getDelegations();
 	public abstract AgentAction getAction();
+
+	public Agent(String _name)
+	{
+		name = _name;
+		x = 0;
+		y = 0;
+	}
 
     protected ArrayList<Responsibility> getMostCared(ArrayList<ArrayList<Responsibility>> possible) 
     {
@@ -103,7 +111,9 @@ public abstract class Agent
 		y = y2;
 	}
 
-    public void addObservations(ArrayList<DirtObservation> observed) {
+    public void addObservation(Observation observed)
+	{
+		observations.add(observed);
     }
 	
     
