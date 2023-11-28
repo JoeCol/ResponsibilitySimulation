@@ -50,7 +50,7 @@ public class ResponsibilityModel
     {
         for (Agent ag : nodet.agents)
         {
-            ag.reason();
+            ag.reason(nodet);
         }
     }
 
@@ -69,17 +69,15 @@ public class ResponsibilityModel
     {
         for (Responsibility r : nodet.res.getActiveResponsibilities())
         {
-            switch (r.evaluate(nodet.env)) 
+            r.doResolution(nodet);
+            if (r.failed())
             {
-                case re_failed:
                     nodet.res.removeAllAssignments(r);
                     nodet.res.AddActiveRes(r.getFailRes());
-                    break;
-                case re_success:
+            }
+            if (r.fulfilled())
+            {
                     nodet.res.removeAllAssignments(r);
-                    break;
-                default:
-                    break;
             }
         }
     }
@@ -134,7 +132,7 @@ public class ResponsibilityModel
         {
             ArrayList<Responsibility> assigned = nodet.res.getSortedResponsibilitiesForAgent(ag);
             ArrayList<Responsibility> toWorkOn = new ArrayList<Responsibility>();
-            toWorkOn.add(ag.largestNonConflict(assigned,ag));
+            toWorkOn.addAll(ag.largestNonConflict(assigned,ag));
             ag.setToWorkOn(toWorkOn);
         }
     }

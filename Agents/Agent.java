@@ -7,6 +7,7 @@ import Environment.Observation;
 import Environment.Environment.AgentAction;
 import Responsibility.Delegation;
 import Responsibility.Responsibility;
+import Responsibility.ResponsibilityModel.Node;
 
 public abstract class Agent 
 {
@@ -20,14 +21,15 @@ public abstract class Agent
 	public abstract boolean accepts(Agent a, Environment env, Responsibility r);
 	public abstract boolean accepts(Environment env, Responsibility r);
 	public abstract int getCare(Responsibility res);
-	public abstract Responsibility largestNonConflict(ArrayList<Responsibility> assigned, Agent ag);
+	public abstract ArrayList<Responsibility> largestNonConflict(ArrayList<Responsibility> assigned, Agent ag);
 	public abstract void setToWorkOn(ArrayList<Responsibility> toWorkOn);
 	public abstract void observed();
 	public abstract void processFinished();
-    public abstract void reason();
+    public abstract void reason(Node nodet);
     public abstract void finish();
 	public abstract ArrayList<Delegation> getDelegations();
 	public abstract AgentAction getAction();
+	public abstract void sendMsg(String msg);
 
 	public Agent(String _name)
 	{

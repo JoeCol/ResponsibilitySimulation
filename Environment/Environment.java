@@ -14,5 +14,8 @@ public abstract class Environment
     public abstract Component getGUIPanel();
     public abstract void updateGUIPanel(Node node);
     public abstract void nodeUpdate(Node node);
+    public WorldCell[][] getWorldCells() {
+        return world;
+    }
     
 }

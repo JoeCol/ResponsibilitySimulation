@@ -56,6 +56,17 @@ public class Responsibilities
         assignments.add(new Assignment(delegatingAgent, acceptingAgent, r, start, end));
     }
 
+    private ArrayList<Responsibility> getSubResponsibilities(Responsibility r)
+    {
+        ArrayList<Responsibility> subresponsiblities = new ArrayList<Responsibility>();
+        for (Responsibility sub : r.getSubRes())
+        {
+            subresponsiblities.addAll(getSubResponsibilities(sub));
+        }
+        subresponsiblities.add(r);
+        return subresponsiblities;
+    }
+
     public ArrayList<Responsibility> getSortedResponsibilitiesForAgent(Agent ag) 
     {
         ArrayList<Responsibility> sortedResponsiblities = new ArrayList<Responsibility>();
@@ -63,7 +74,7 @@ public class Responsibilities
         {
             if (a.assignedAgents.contains(ag))
             {
-                sortedResponsiblities.add(a.res);
+                sortedResponsiblities.addAll(getSubResponsibilities(a.res));
             }
         }
         sortedResponsiblities.sort(new Comparator<Responsibility>() {

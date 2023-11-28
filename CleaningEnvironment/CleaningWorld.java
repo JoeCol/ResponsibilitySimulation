@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.ArrayDeque;
 import java.util.Random;
+import java.util.Set;
 import java.nio.file.*;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -126,6 +127,19 @@ public class CleaningWorld extends Environment
 
 	}
 
+	//Used to get default care values into manager agent
+	public void setupManagerAgentHelper(Agent manager)
+	{
+		for (int y = 0; y < world.length; y++)
+		{
+			for (int x = 0; x < world[y].length; x++)
+			{
+				manager.addObservation(new DirtObservation(x,y,getCell(x,y).hasDirt(), getCell(x, y).hasBadDirt()));
+			}
+		}
+		manager.observed();
+	}
+
 	private void observeDirt(Agent agent) 
 	{
 		//Get zone for agent
@@ -136,14 +150,11 @@ public class CleaningWorld extends Environment
 			{
 				if (getCell(x, y).getZoneID() == zone)
 				{
-					if (getCell(x, y).hasDirt())
-					{
-						agent.addObservation(new DirtObservation(x,y,getCell(x, y).hasBadDirt()));
-					}
+					agent.addObservation(new DirtObservation(x,y,getCell(x,y).hasDirt(), getCell(x, y).hasBadDirt()));
 				}
 			}
 		}
-		
+		agent.observed();
 	}
 
 	private void clean(Agent ag) 
@@ -161,6 +172,11 @@ public class CleaningWorld extends Environment
 		{
 			ag.setNewLocation(x,y);
 		}
+	}
+
+	public Set<Character> getZones()
+	{
+		return zoneSquares.keySet();
 	}
 
 	public int getHeight() 

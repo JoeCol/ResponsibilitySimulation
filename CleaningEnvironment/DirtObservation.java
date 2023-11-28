@@ -1,26 +1,28 @@
 package CleaningEnvironment;
 
 import Helper.Pair;
+import CleaningEnvironment.CleaningWorldCell.DirtLevel;
 import Environment.Observation;
 
 public class DirtObservation extends Observation
 {
     private Pair<Integer,Integer> location;
-    private Boolean isBadDirt;
+    private DirtLevel cellState;
 
-    public DirtObservation(int x, int y, boolean hasBadDirt) 
+    public DirtObservation(int x, int y, boolean hasDirt, boolean hasBadDirt) 
     {
         super("Dirt");
         location = new Pair<Integer,Integer>(x, y);
-        isBadDirt = hasBadDirt;
+        cellState = hasBadDirt ? DirtLevel.dl_badDirt : DirtLevel.dl_dirt;
+        cellState = hasDirt ? cellState : DirtLevel.dl_clear;
     }
 
     public Pair<Integer, Integer> getLocation() {
         return location;
     }
 
-    public Boolean getIsBadDirt() {
-        return isBadDirt;
+    public DirtLevel getIsBadDirt() {
+        return cellState;
     }
     
 }

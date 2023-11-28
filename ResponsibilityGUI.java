@@ -85,6 +85,8 @@ public class ResponsibilityGUI {
 			});
 		}
 		resModel.setup(ags, env);
+		((CleaningWorld)env).setupManagerAgentHelper(ags.get(2));//addobservations to manager agent to setup default care values
+
 		for (int i = 0; i < simSteps; i++)
 		{
 			resModel.doStep();
