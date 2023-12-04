@@ -3,16 +3,21 @@ import java.awt.Color;
 import java.awt.Component;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.ArrayDeque;
 import java.util.Random;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.nio.file.*;
 import java.io.FileWriter;
 import java.io.IOException;
 
 import Agents.Agent;
+import Agents.ManagerAgent;
 import CleaningEnvironment.DirtRecord.Record;
 import Environment.Environment;
 import Helper.Pair;
@@ -23,7 +28,8 @@ public class CleaningWorld extends Environment
 	String saveLocation;
 	ArrayList<Agent> agents = new ArrayList<Agent>();
 	HashMap<Agent, Color> agentColours = new HashMap<Agent, Color>();
-	HashMap<Character, ArrayList<Pair<Integer, Integer>>> zoneSquares = new HashMap<Character, ArrayList<Pair<Integer, Integer>>>();
+	HashMap<Pair<Integer, Integer>, Character> zoneSquares = new HashMap<Pair<Integer, Integer>, Character>();
+	HashSet<Character> zones = new HashSet<Character>();
 	
 	Random r = new Random();
 	
@@ -97,11 +103,11 @@ public class CleaningWorld extends Environment
 				for (int x = 0; x < world[0].length; x++)
 				{
 					char zoneID = line.charAt(x);
-					zoneSquares.putIfAbsent(zoneID, new ArrayList<Pair<Integer, Integer>>());
-					zoneSquares.get(zoneID).add(new Pair<Integer, Integer>(x,y));
+					zoneSquares.put(new Pair<Integer, Integer>(x,y), zoneID);
 					if (zoneID != '0')//0 is reserved for walls
 					{
 						possibleDirtLocations.add(new Pair<Integer, Integer>(x,y));
+						zones.add(zoneID);
 					}
 					world[y][x] = new CleaningWorldCell(zoneID,5);
 				}
@@ -174,9 +180,9 @@ public class CleaningWorld extends Environment
 		}
 	}
 
-	public Set<Character> getZones()
+	public HashSet<Character> getZones()
 	{
-		return zoneSquares.keySet();
+		return zones;
 	}
 
 	public int getHeight() 
@@ -299,4 +305,51 @@ public class CleaningWorld extends Environment
 			addDirt(currentTime % badDirtEveryX == 0, currentTime);
 		}
 	}
+
+	public Character getZoneIDForAgent(Agent ag) 
+	{
+		int x = ag.getX();
+		int y = ag.getY();
+		for (Pair<Integer, Integer> z : zoneSquares.keySet())
+		{
+			if (x == z.getFirst() && y == z.getSecond())
+			{
+				return zoneSquares.get(z);
+			}
+		}
+		return null;
+	}
+
+	public Pair<Integer, Integer> getZoneLocation(Character zone) {
+		for (Entry<Pair<Integer, Integer>, Character> a : zoneSquares.entrySet())
+		{
+			if (a.getValue() == zone)
+			{
+				return a.getKey();
+			}
+		}
+		return null;
+	}
+
+	public boolean actionWasTaken(String actionToDo) {
+		for (Pair<Agent,String> act : previousActions)
+		{
+			if (act.getSecond().contentEquals(actionToDo))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+    public boolean stateIsValid(String stateToCheck) 
+	{
+		switch (stateToCheck)
+		{
+			case "cdc<5":
+				//TODO add actual check
+				break;
+		}
+        return true;
+    }
 }

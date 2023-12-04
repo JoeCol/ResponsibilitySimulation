@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import CleaningEnvironment.CleaningWorld;
 import Responsibility.ResponsibilityModel.Node;
 
 public class TaskResponsibility extends ResponsibilityType
@@ -29,6 +30,7 @@ public class TaskResponsibility extends ResponsibilityType
 
     public TaskResponsibility(ArrayList<TaskResponsibility.TaskAction> _actions, ArrayList<TaskResponsibility.TaskState> _states) 
     {
+        super("Task");
         for (TaskAction act : _actions)
         {
             actions.put(act, false);
@@ -88,9 +90,17 @@ public class TaskResponsibility extends ResponsibilityType
 
     @Override
     public void resolution(Node nodet) {
-        // Evaluate states
-
+        
         // See if actions done
+        for (TaskAction ta : getActions())
+        {
+            actions.put(ta, ((CleaningWorld)nodet.env).actionWasTaken(ta.actionToDo));
+        }
+        // Evaluate states
+        for (TaskState ts : getStates())
+        {
+            states.put(ts, ((CleaningWorld)nodet.env).stateIsValid(ts.stateToCheck));
+        }
         
     }
 

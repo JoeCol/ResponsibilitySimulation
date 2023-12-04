@@ -33,4 +33,15 @@ public class Pair<T,T1>
         first = _1;
         second = _2;
     }
+
+    @Override
+    public boolean equals(Object a)
+    {
+        if (a != null && a.getClass() == this.getClass())
+        {
+            Pair<T,T1> toCompare = (Pair<T,T1>)a;
+            return toCompare.first.equals(getFirst()) && toCompare.second.equals(getSecond());
+        }
+        return false;
+    }
 }

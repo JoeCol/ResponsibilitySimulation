@@ -30,7 +30,12 @@ public class Responsibility {
         this.failRes = failRes;
     }
 
-    public Concludes getType() {
+    public ResponsibilityType getResponsibilityType()
+    {
+        return restype;
+    }
+
+    public Concludes getConcludes() {
         return conclude;
     }
     public void setType(Concludes conclude) {

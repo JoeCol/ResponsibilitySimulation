@@ -1,7 +1,9 @@
 package Agents;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
+import CleaningEnvironment.CleaningWorld;
 import CleaningEnvironment.DirtObservation;
 import CleaningEnvironment.CleaningWorldCell.DirtLevel;
 import Environment.Environment;
@@ -9,20 +11,29 @@ import Environment.Observation;
 import Environment.Environment.AgentAction;
 import Helper.Pair;
 import Responsibility.Delegation;
+import Responsibility.Responsibilities;
 import Responsibility.Responsibility;
 import Responsibility.ResponsibilityModel.Node;
+import Responsibility.TaskResponsibility;
+import Responsibility.Responsibility.Concludes;
+import Responsibility.TaskResponsibility.TaskAction;
 
 public class ManagerAgent extends Agent
 {
     private HashMap<String,Boolean> cleanerAgentState = new HashMap<String,Boolean>();
     private HashMap<String,Integer> careValues = new HashMap<String,Integer>();
+    private ArrayList<Responsibility> workOn = new ArrayList<Responsibility>();
+    private Character currentZone = '0';
+    private CleaningWorld env;
+    private ArrayList<Agent> cleanerAgents = new ArrayList<Agent>();
+    private String lastDelegatingAgent = "none";
 
     public ManagerAgent(String _name) {
         super(_name);
         careValues.put("janitorial", 1000);
         careValues.put("safety", 500);
         careValues.put("cleanliness", 400);
-        careValues.put("observe", 5);
+        careValues.put("observe", 8);
         careValues.put("clean", 4);
         careValues.put("reportHuman", 100);
     }
@@ -56,7 +67,7 @@ public class ManagerAgent extends Agent
 
     @Override
     public boolean accepts(Environment env, Responsibility r) {
-        return r.getName().contains("janitorial") || r.getName().contains("reportHuman");
+        return !r.getName().contains("report");
     }
 
     @Override
@@ -73,7 +84,7 @@ public class ManagerAgent extends Agent
     {
         ArrayList<Responsibility> lnc = new ArrayList<Responsibility>();
         ArrayList<Responsibility> clashingSet = new ArrayList<Responsibility>();
-        for (int i = 1; i < assigned.size(); i++)
+        for (int i = 0; i < assigned.size(); i++)
         {
             if (assigned.get(i).getName().contains("("))//If responsibility has a parameter it does clash with other responsiblities
             {
@@ -96,7 +107,7 @@ public class ManagerAgent extends Agent
     @Override
     public void setToWorkOn(ArrayList<Responsibility> toWorkOn)
     {
-        
+        workOn = toWorkOn;
     }
 
     @Override
@@ -106,6 +117,7 @@ public class ManagerAgent extends Agent
             DirtObservation d = (DirtObservation)o;
             updateCareValues(d.getLocation(), d.getIsBadDirt());
         }
+        observations.clear();
     }
 
     @Override
@@ -125,12 +137,121 @@ public class ManagerAgent extends Agent
 
     @Override
     public AgentAction getAction() {
-        return AgentAction.aa_none;
+        AgentAction envAction = AgentAction.aa_none;
+        for (Responsibility r : workOn)
+        {
+            if (r.getResponsibilityType().getTypeName().equals("Task"))
+            {
+                TaskResponsibility tr = (TaskResponsibility)r.getResponsibilityType();
+                for (TaskAction ta : tr.getActions())
+                {
+                    String[] action = ta.actionToDo.split("\\(");
+                    switch(action[0])
+                    {
+                        case "clean":
+                            //Choose delegation
+                            String toDelegate = "none";
+                            if (cleanerAgentState.containsValue(false))
+                            {
+                                for (Entry<String, Boolean> as : cleanerAgentState.entrySet())
+                                {
+                                    if (as.getValue() == false)
+                                    {
+                                        toDelegate = as.getKey();
+                                        break;
+                                    }
+                                }
+                            }
+                            if (toDelegate.equals("none"))
+                            {
+                                if (r.getName().contains("SC"))
+                                {
+                                    String coord = action[1].substring(action[1].indexOf(")"));
+                                    String[] icoords = coord.split(",");
+                                    Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.getInteger(icoords[0]),Integer.getInteger(icoords[1]));
+                                    if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
+                                    {
+                                        envAction = AgentAction.aa_clean;
+                                        env.recordAction(this, ta.actionToDo);
+                                    }
+                                    else
+                                    {
+                                        envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
+                                        env.recordAction(this, envAction.toString());
+                                    }
+                                }
+                                else
+                                {
+                                    Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
+                                    ArrayList<Agent> delegateTo = new ArrayList<Agent>();
+                                    toDelegate = lastDelegatingAgent;
+                                    for (Agent a : cleanerAgents)
+                                    {
+                                        if (a.getName() != toDelegate)
+                                        {
+                                            delegateTo.add(a);
+                                            lastDelegatingAgent = a.getName();
+                                        }
+                                    }
+                                    delegations.add(new Delegation(delegated, delegateTo));
+                                }
+                            }
+                            else
+                            {
+                                Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
+                                ArrayList<Agent> delegateTo = new ArrayList<Agent>();
+                                for (Agent a : cleanerAgents)
+                                {
+                                    if (a.getName() == toDelegate)
+                                    {
+                                        delegateTo.add(a);
+                                        lastDelegatingAgent = a.getName();
+                                    }
+                                }
+                                delegations.add(new Delegation(delegated, delegateTo));
+                            }
+                            //If no free agent clean sc dirt
+                            //else 
+                            break;
+                        case "sendReport":
+                            System.out.println("Report that safety critial dirt levels have exceeded safe levels");
+                            env.recordAction(this, ta.actionToDo);
+                            break;
+                        case "observe":
+                            char zoneToObserve = action[1].charAt(0);
+                            if (currentZone == zoneToObserve)
+                            {
+                                envAction = AgentAction.aa_observedirt;
+                                env.recordAction(this, ta.actionToDo);
+                            }
+                            else
+                            {
+                                Pair<Integer,Integer> toGo = env.getZoneLocation(zoneToObserve);
+                                envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
+                                env.recordAction(this, envAction.toString());
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+        return envAction;
     }
 
     @Override
     public void reason(Node nodet) {
-        
+        currentZone = ((CleaningWorld)nodet.env).getZoneIDForAgent(this);
+        env = (CleaningWorld)nodet.env;
+        if (cleanerAgents.isEmpty())
+        {
+            cleanerAgents.add(nodet.agents.get(0));//Know that manager agent is agent 2
+            cleanerAgents.add(nodet.agents.get(1));
+            //Setup care values for observe, now know how many rooms there are
+            for (Character z : env.getZones())
+            {
+                careValues.put("observe(" + z + ")", 5);
+            }
+        }
     }
 
     @Override

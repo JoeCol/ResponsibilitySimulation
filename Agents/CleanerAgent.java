@@ -7,7 +7,9 @@ import Environment.Environment.AgentAction;
 import Helper.Pair;
 import Responsibility.Delegation;
 import Responsibility.Responsibility;
+import Responsibility.TaskResponsibility;
 import Responsibility.ResponsibilityModel.Node;
+import Responsibility.TaskResponsibility.TaskAction;
 
 public class CleanerAgent extends Agent
 {
@@ -126,27 +128,39 @@ public class CleanerAgent extends Agent
         AgentAction envAction = AgentAction.aa_none;
         for (Responsibility r : toWork)
         {
-            if (r.getName().contains("report"))
+            if (r.getResponsibilityType().getTypeName().equals("Task"))
             {
-                sendMsg = !(toWork.size() > 1 && lastSentActive) || !(toWork.size() == 1 && !lastSentActive);//(not (Got work and sent working)) or (not (no work and sent not working))
-                if (sendMsg)
+                TaskResponsibility tr = (TaskResponsibility)r.getResponsibilityType();
+                for (TaskAction ta : tr.getActions())
                 {
-                    boolean working = toWork.size() > 1;
-                    manager.sendMsg(getName() + " " + working);
-                }
-            }
-            else if (envAction == AgentAction.aa_none)
-            {
-                String coord = r.getName().substring(r.getName().indexOf("(") + 1, r.getName().indexOf(")"));
-                String[] icoords = coord.split(",");
-                Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.getInteger(icoords[0]),Integer.getInteger(icoords[1]));
-                if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
-                {
-                    envAction = AgentAction.aa_clean;
-                }
-                else
-                {
-                    envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
+                    String action = ta.actionToDo;
+                    if (action.contains("sendStatus"))
+                    {
+                        sendMsg = !(toWork.size() > 1 && lastSentActive) || !(toWork.size() == 1 && !lastSentActive);//(not (Got work and sent working)) or (not (no work and sent not working))
+                        if (sendMsg)
+                        {
+                            boolean working = toWork.size() > 1;
+                            manager.sendMsg(getName() + "," + working);
+                            env.recordAction(this,ta.actionToDo);
+                            lastSentActive = working;
+                        }
+                    }
+                    else if (action.contains("clean"))
+                    {
+                        String coord = action.substring(action.indexOf("(") + 1, action.indexOf(")"));
+                        String[] icoords = coord.split(",");
+                        Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.getInteger(icoords[0]),Integer.getInteger(icoords[1]));
+                        if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
+                        {
+                            envAction = AgentAction.aa_clean;
+                            env.recordAction(this, ta.actionToDo);
+                        }
+                        else
+                        {
+                            envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
+                            env.recordAction(this, envAction.toString());
+                        }
+                    }
                 }
             }
         }

@@ -37,7 +37,7 @@ public class ResponsibilityModel
     {
         nodet.timet++;
         resolution();
-        assignment();
+        assignment(nodet.res.getUnassignedResponsibilities());
         reason();
         delegation();
         responsibilitySelection();
@@ -69,33 +69,52 @@ public class ResponsibilityModel
     {
         for (Responsibility r : nodet.res.getActiveResponsibilities())
         {
+            boolean rname = r.getName().contains("observe");
+            if (rname)
+            {
+                System.out.println("resolving " + r.getName());
+            }
             r.doResolution(nodet);
             if (r.failed())
             {
                     nodet.res.removeAllAssignments(r);
-                    nodet.res.AddActiveRes(r.getFailRes());
+                    nodet.res.addActiveRes(r.getFailRes());
             }
             if (r.fulfilled())
             {
-                    nodet.res.removeAllAssignments(r);
+                nodet.res.removeAllAssignments(r);
             }
         }
     }
 
-    private void assignment() 
+    private void assignment(ArrayList<Responsibility> unassignedRes) 
     {
-        ArrayList<Responsibility> unassignedRes = nodet.res.getUnassignedResponsibilities();
         for (Responsibility r : unassignedRes)
         {
-            ArrayList<Agent> acceptingAgent = new ArrayList<Agent>();
-            for (Agent ag : nodet.agents)
+            //Assign subresponsibilities
+            assignment(r.getSubRes());
+            //Check if all sub responsibilities assigned
+            boolean allAssigned = true;
+            for (Responsibility subRes : r.getSubRes())
             {
-                if (ag.accepts(nodet.env,r))
+                if (!nodet.res.isAssigned(subRes))
                 {
-                    acceptingAgent.add(ag);
+                    allAssigned = false;
+                    break;
                 }
             }
-            nodet.res.addAssignment(acceptingAgent,r, nodet.timet, Integer.MAX_VALUE);
+            if (allAssigned)
+            {
+                ArrayList<Agent> acceptingAgent = new ArrayList<Agent>();
+                for (Agent ag : nodet.agents)
+                {
+                    if (ag.accepts(nodet.env,r))
+                    {
+                        acceptingAgent.add(ag);
+                    }
+                }
+                nodet.res.addAssignment(acceptingAgent,r, nodet.timet, Integer.MAX_VALUE);
+            }
         }
     }
 
@@ -105,10 +124,12 @@ public class ResponsibilityModel
         {
             for (Delegation d : ag.getDelegations())
             {
+                nodet.res.AddActiveRes(d.getResponsibility());
                 if (allAccept(ag, d.getAgents(), d.getResponsibility()))
                 {
                     int end = Math.max(nodet.timet + d.getLength(), Integer.MAX_VALUE);
                     nodet.res.addAssignment(ag, d.getAgents(), d.getResponsibility(), nodet.timet, end);
+                    
                     //nodet.res.removeAssignment(ag, d.getResponsibility()); Change to theory, still responsible when delegated
                 }
             }
@@ -139,6 +160,7 @@ public class ResponsibilityModel
 
     private void actions() 
     {
+        nodet.env.newStep();
         for (Agent ag : nodet.agents)
         {
             nodet.env.applyAction(ag, ag.getAction());
