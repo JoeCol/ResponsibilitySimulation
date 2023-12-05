@@ -109,7 +109,7 @@ public class CleaningWorld extends Environment
 						possibleDirtLocations.add(new Pair<Integer, Integer>(x,y));
 						zones.add(zoneID);
 					}
-					world[y][x] = new CleaningWorldCell(zoneID,5);
+					world[y][x] = new CleaningWorldCell(zoneID,1);//Change this back to 5
 				}
 			}
 			fr.close();

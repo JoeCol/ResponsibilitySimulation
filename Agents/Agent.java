@@ -117,6 +117,11 @@ public abstract class Agent
 	{
 		observations.add(observed);
     }
+
+	public void delegateSuccess(ArrayList<Delegation> delegated) 
+	{
+		delegations.removeAll(delegated);
+	}
 	
     
 	

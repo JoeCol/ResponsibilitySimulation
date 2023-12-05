@@ -69,11 +69,6 @@ public class ResponsibilityModel
     {
         for (Responsibility r : nodet.res.getActiveResponsibilities())
         {
-            boolean rname = r.getName().contains("observe");
-            if (rname)
-            {
-                System.out.println("resolving " + r.getName());
-            }
             r.doResolution(nodet);
             if (r.failed())
             {
@@ -89,7 +84,7 @@ public class ResponsibilityModel
 
     private void assignment(ArrayList<Responsibility> unassignedRes) 
     {
-        for (Responsibility r : unassignedRes)
+        for (Responsibility r : unassignedRes) //TODO fix assignment issue
         {
             //Assign subresponsibilities
             assignment(r.getSubRes());
@@ -103,7 +98,7 @@ public class ResponsibilityModel
                     break;
                 }
             }
-            if (allAssigned)
+            if (allAssigned && !nodet.res.isAssigned(r))
             {
                 ArrayList<Agent> acceptingAgent = new ArrayList<Agent>();
                 for (Agent ag : nodet.agents)
@@ -122,6 +117,7 @@ public class ResponsibilityModel
     {
         for (Agent ag : nodet.agents)
         {
+            ArrayList<Delegation> delegated = new ArrayList<Delegation>();
             for (Delegation d : ag.getDelegations())
             {
                 nodet.res.AddActiveRes(d.getResponsibility());
@@ -129,17 +125,19 @@ public class ResponsibilityModel
                 {
                     int end = Math.max(nodet.timet + d.getLength(), Integer.MAX_VALUE);
                     nodet.res.addAssignment(ag, d.getAgents(), d.getResponsibility(), nodet.timet, end);
-                    
+                    delegated.add(d);
                     //nodet.res.removeAssignment(ag, d.getResponsibility()); Change to theory, still responsible when delegated
                 }
             }
+            ag.delegateSuccess(delegated);
         }
+        
     }
 
     private boolean allAccept(Agent ag, ArrayList<Agent> agents, Responsibility responsibility) {
         for (Agent a : agents)
         {
-            if (a.accepts(ag, nodet.env, responsibility))
+            if (!a.accepts(ag, nodet.env, responsibility))
             {
                 return false;
             }

@@ -14,7 +14,7 @@ import Responsibility.TaskResponsibility.TaskAction;
 public class CleanerAgent extends Agent
 {
     private ArrayList<Responsibility> toWork;
-    private boolean lastSentActive = false;
+    private boolean lastSentActive = true;
     private Agent manager = null;
     private CleaningWorld env;
 
@@ -136,7 +136,7 @@ public class CleanerAgent extends Agent
                     String action = ta.actionToDo;
                     if (action.contains("sendStatus"))
                     {
-                        sendMsg = !(toWork.size() > 1 && lastSentActive) || !(toWork.size() == 1 && !lastSentActive);//(not (Got work and sent working)) or (not (no work and sent not working))
+                        sendMsg = (toWork.size() > 1 && !lastSentActive) || (toWork.size() == 1 && lastSentActive);//(Got work and sent not working) xor (no work and sent working)
                         if (sendMsg)
                         {
                             boolean working = toWork.size() > 1;
@@ -149,7 +149,7 @@ public class CleanerAgent extends Agent
                     {
                         String coord = action.substring(action.indexOf("(") + 1, action.indexOf(")"));
                         String[] icoords = coord.split(",");
-                        Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.getInteger(icoords[0]),Integer.getInteger(icoords[1]));
+                        Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.valueOf(icoords[0]),Integer.valueOf(icoords[1]));
                         if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
                         {
                             envAction = AgentAction.aa_clean;

@@ -166,9 +166,9 @@ public class ManagerAgent extends Agent
                             {
                                 if (r.getName().contains("SC"))
                                 {
-                                    String coord = action[1].substring(action[1].indexOf(")"));
+                                    String coord = action[1].substring(0,action[1].indexOf(")"));
                                     String[] icoords = coord.split(",");
-                                    Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.getInteger(icoords[0]),Integer.getInteger(icoords[1]));
+                                    Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.valueOf(icoords[0]),Integer.valueOf(icoords[1]));
                                     if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
                                     {
                                         envAction = AgentAction.aa_clean;
@@ -191,6 +191,7 @@ public class ManagerAgent extends Agent
                                         {
                                             delegateTo.add(a);
                                             lastDelegatingAgent = a.getName();
+                                            break;
                                         }
                                     }
                                     delegations.add(new Delegation(delegated, delegateTo));
@@ -202,7 +203,7 @@ public class ManagerAgent extends Agent
                                 ArrayList<Agent> delegateTo = new ArrayList<Agent>();
                                 for (Agent a : cleanerAgents)
                                 {
-                                    if (a.getName() == toDelegate)
+                                    if (a.getName().equals(toDelegate))
                                     {
                                         delegateTo.add(a);
                                         lastDelegatingAgent = a.getName();
