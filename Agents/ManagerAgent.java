@@ -27,6 +27,7 @@ public class ManagerAgent extends Agent
     private CleaningWorld env;
     private ArrayList<Agent> cleanerAgents = new ArrayList<Agent>();
     private String lastDelegatingAgent = "none";
+    private Node node;
 
     public ManagerAgent(String _name) {
         super(_name);
@@ -149,52 +150,58 @@ public class ManagerAgent extends Agent
                     switch(action[0])
                     {
                         case "clean":
-                            //Choose delegation
-                            String toDelegate = "none";
-                            if (cleanerAgentState.containsValue(false))
+                            //Choose delegation and need to check if already delegated
+                            if (!node.getResponsibilities(this).isAssigned(r))
                             {
-                                for (Entry<String, Boolean> as : cleanerAgentState.entrySet())
+                                String toDelegate = "none";
+                                if (cleanerAgentState.containsValue(false))
                                 {
-                                    if (as.getValue() == false)
+                                    for (Entry<String, Boolean> as : cleanerAgentState.entrySet())
                                     {
-                                        toDelegate = as.getKey();
-                                        break;
+                                        if (as.getValue() == false)
+                                        {
+                                            toDelegate = as.getKey();
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            if (toDelegate.equals("none"))
-                            {
-                                if (r.getName().contains("SC"))
+                                if (toDelegate.equals("none"))
                                 {
                                     String coord = action[1].substring(0,action[1].indexOf(")"));
                                     String[] icoords = coord.split(",");
                                     Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.valueOf(icoords[0]),Integer.valueOf(icoords[1]));
-                                    if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
+                                    if (r.getName().contains("SC"))
                                     {
-                                        envAction = AgentAction.aa_clean;
-                                        env.recordAction(this, ta.actionToDo);
+                                        
+                                        if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
+                                        {
+                                            envAction = AgentAction.aa_clean;
+                                            env.recordAction(this, ta.actionToDo);
+                                        }
+                                        else
+                                        {
+                                            envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
+                                            env.recordAction(this, envAction.toString());
+                                        }
                                     }
                                     else
                                     {
-                                        envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
-                                        env.recordAction(this, envAction.toString());
-                                    }
-                                }
-                                else
-                                {
-                                    Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
-                                    ArrayList<Agent> delegateTo = new ArrayList<Agent>();
-                                    toDelegate = lastDelegatingAgent;
-                                    for (Agent a : cleanerAgents)
-                                    {
-                                        if (a.getName() != toDelegate)
+                                        Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
+                                        ArrayList<Agent> delegateTo = new ArrayList<Agent>();
+                                        toDelegate = lastDelegatingAgent;
+                                        for (Agent a : cleanerAgents)
                                         {
-                                            delegateTo.add(a);
-                                            lastDelegatingAgent = a.getName();
-                                            break;
+                                            if (a.getName() != toDelegate)
+                                            {
+                                                delegateTo.add(a);
+                                                lastDelegatingAgent = a.getName();
+                                                break;
+                                            }
                                         }
+                                        delegations.add(new Delegation(delegated, delegateTo));
+                                        //I've delegated so I no longer care about the square to clean, assume it is clean
+                                        updateCareValues(toGo, DirtLevel.dl_clear);
                                     }
-                                    delegations.add(new Delegation(delegated, delegateTo));
                                 }
                             }
                             else
@@ -243,6 +250,7 @@ public class ManagerAgent extends Agent
     public void reason(Node nodet) {
         currentZone = ((CleaningWorld)nodet.env).getZoneIDForAgent(this);
         env = (CleaningWorld)nodet.env;
+        node = nodet;
         if (cleanerAgents.isEmpty())
         {
             cleanerAgents.add(nodet.agents.get(0));//Know that manager agent is agent 2

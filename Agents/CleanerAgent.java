@@ -87,7 +87,7 @@ public class CleanerAgent extends Agent
 
     @Override
     public void observed() {
-        // TODO 
+        // Nothing to observe
     }
 
     @Override

@@ -12,7 +12,20 @@ public class ResponsibilityModel
         public int timet;
         public Environment env;
         public ArrayList<Agent> agents;
-        Responsibilities res; //Only in centralised version
+        private Responsibilities res; //Only in centralised version
+        private HashMap<Agent,Responsibilities> agentRes;//Decentralised version
+
+        public Responsibilities getResponsibilities(Agent ag)
+        {
+            if (centralised)
+            {
+                return agentRes.get(ag);
+            }
+            else
+            {
+                return res;
+            }
+        }
     }    
     
     private Node nodet = new Node();
@@ -84,7 +97,7 @@ public class ResponsibilityModel
 
     private void assignment(ArrayList<Responsibility> unassignedRes) 
     {
-        for (Responsibility r : unassignedRes) //TODO fix assignment issue
+        for (Responsibility r : unassignedRes)
         {
             //Assign subresponsibilities
             assignment(r.getSubRes());

@@ -165,10 +165,14 @@ public class CleaningWorld extends Environment
 
 	private void clean(Agent ag) 
 	{
-		if (getCell(ag.getX(),ag.getY()).clean(currentTime))
+		int x = ag.getX();
+		int y = ag.getY();
+		if (getCell(x,y).clean(currentTime))
 		{
-			possibleDirtLocations.add(new Pair<Integer,Integer>(ag.getX(),ag.getY()));
+			possibleDirtLocations.add(new Pair<Integer,Integer>(x,y));
 		}
+		ag.addObservation(new DirtObservation(x,y,getCell(x,y).hasDirt(), getCell(x, y).hasBadDirt()));
+		ag.observed();
 	}
 	
 	//Change environment percepts
