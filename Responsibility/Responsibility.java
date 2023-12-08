@@ -1,6 +1,7 @@
 package Responsibility;
 import java.util.ArrayList;
 
+import Agents.Agent;
 import Responsibility.ResponsibilityModel.Node;
 
 public class Responsibility {
@@ -67,9 +68,23 @@ public class Responsibility {
         restype.resolution(t);
     }
 
-    public boolean failed() 
+    private ArrayList<Agent> getValidAgents(Responsibility r, ArrayList<Agent> possibleAgents)
     {
-        return false;//Need to implement this
+        ArrayList<Agent> toRet = new ArrayList<Agent>();
+        for (Agent a : possibleAgents)
+        {
+            if (a.canDo(r))
+            {
+                toRet.add(a);
+            }
+        }
+        return toRet;
+    }
+
+    public boolean failed(ArrayList<Agent> possibleAgents) 
+    {
+        ArrayList<Agent> proposed = getValidAgents(this, possibleAgents);
+        return proposed.size() > 0;//Need to implement this
     }
 
     public boolean fulfilled() 

@@ -30,6 +30,7 @@ public abstract class Agent
 	public abstract ArrayList<Delegation> getDelegations();
 	public abstract AgentAction getAction();
 	public abstract void sendMsg(String msg);
+	public abstract boolean canDo(Responsibility r);
 
 	public Agent(String _name)
 	{
@@ -122,8 +123,4 @@ public abstract class Agent
 	{
 		delegations.removeAll(delegated);
 	}
-	
-    
-	
-	
 }

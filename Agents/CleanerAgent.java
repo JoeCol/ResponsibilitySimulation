@@ -171,5 +171,10 @@ public class CleanerAgent extends Agent
     public void sendMsg(String msg) {
         //Not listening
     }
+
+    @Override
+    public boolean canDo(Responsibility r) {
+        return r.getName().contains("clean") || r.getName().contains("report");
+    }
     
 }

@@ -83,7 +83,7 @@ public class ResponsibilityModel
         for (Responsibility r : nodet.res.getActiveResponsibilities())
         {
             r.doResolution(nodet);
-            if (r.failed())
+            if (r.failed(nodet.agents))
             {
                     nodet.res.removeAllAssignments(r);
                     nodet.res.addActiveRes(r.getFailRes());
