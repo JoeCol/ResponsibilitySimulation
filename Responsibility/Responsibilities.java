@@ -104,15 +104,16 @@ public class Responsibilities
 
     public boolean isAssigned(Responsibility subRes) 
     {
-        return assignedRes.contains(subRes);
-        /*for (Assignment a : assignments)
+        //Allow checks when the object is not the same in memory space but the same construction
+        for (Responsibility r : assignedRes)
         {
-            if (a.res == subRes)
+            if (r.getName() == subRes.getName() &&
+                r.getConcludes() == subRes.getConcludes())//Need concludes to tell difference between manager and cleaner assignment
             {
                 return true;
             }
         }
-        return false;*/
+        return false;
     }
 
 }

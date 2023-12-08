@@ -30,6 +30,8 @@ public class ResponsibilityGUI {
 	 */
 	public static void main(String[] args) 
 	{
+		String[] tmpargs = {"cleaning", "saveLocation", "/Test/", "worldFile", "14Rooms.world"};
+		args = tmpargs;
 		int simSpeed = 0;
 		boolean gui = true;
 		int simSteps = 10000;
@@ -141,9 +143,8 @@ public class ResponsibilityGUI {
 			@Override
 			public void nodeUpdate(Node node) 
 			{
-				/*lblSimStep.setText("Steps Remaining: " + time);
-				lblDirt.setText("Dirt: " + dirt + " Bad Dirt: " + badDirt);
-						visual.setWorld(world, agentLocations, agentColours);*/
+				lblSimStep.setText("Time: " + node.timet);
+				lblDirt.setText("Dirt: " + ((CleaningWorld)node.env).getTotalDirt() + " Bad Dirt: " + ((CleaningWorld)node.env).getTotalSCDirt());
 				env.updateGUIPanel(node);
 			}
 

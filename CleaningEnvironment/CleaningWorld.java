@@ -30,6 +30,8 @@ public class CleaningWorld extends Environment
 	HashMap<Agent, Color> agentColours = new HashMap<Agent, Color>();
 	HashMap<Pair<Integer, Integer>, Character> zoneSquares = new HashMap<Pair<Integer, Integer>, Character>();
 	HashSet<Character> zones = new HashSet<Character>();
+	int totalDirt = 0;
+	int totalSCDirt = 0;
 	
 	Random r = new Random();
 	
@@ -66,6 +68,11 @@ public class CleaningWorld extends Environment
 			Collections.shuffle(possibleDirtLocations);//to ensure that dirt is not evenly distributed as it is cleaned.
 			Pair<Integer,Integer> newDirt = possibleDirtLocations.remove(0);
 			getCell(newDirt.getFirst(),newDirt.getSecond()).setDirty(bad, time);
+			totalDirt++;
+			if (bad)
+			{
+				totalSCDirt++;
+			}
 		}
 	}
 
@@ -167,9 +174,15 @@ public class CleaningWorld extends Environment
 	{
 		int x = ag.getX();
 		int y = ag.getY();
+		boolean wasSCDirt = getCell(x, y).hasBadDirt();
 		if (getCell(x,y).clean(currentTime))
 		{
 			possibleDirtLocations.add(new Pair<Integer,Integer>(x,y));
+			totalDirt--;
+			if (wasSCDirt)
+			{
+				totalSCDirt--;
+			}
 		}
 		ag.addObservation(new DirtObservation(x,y,getCell(x,y).hasDirt(), getCell(x, y).hasBadDirt()));
 		ag.observed();
@@ -355,5 +368,13 @@ public class CleaningWorld extends Environment
 				break;
 		}
         return true;
+    }
+
+	public int getTotalDirt() {
+		return totalDirt;
+	}
+
+    public int getTotalSCDirt() {
+        return totalSCDirt;
     }
 }

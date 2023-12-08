@@ -1,5 +1,7 @@
 package Agents;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -17,6 +19,7 @@ import Responsibility.ResponsibilityModel.Node;
 import Responsibility.TaskResponsibility;
 import Responsibility.Responsibility.Concludes;
 import Responsibility.TaskResponsibility.TaskAction;
+import Responsibility.TaskResponsibility.TaskState;
 
 public class ManagerAgent extends Agent
 {
@@ -25,8 +28,7 @@ public class ManagerAgent extends Agent
     private ArrayList<Responsibility> workOn = new ArrayList<Responsibility>();
     private Character currentZone = '0';
     private CleaningWorld env;
-    private ArrayList<Agent> cleanerAgents = new ArrayList<Agent>();
-    private String lastDelegatingAgent = "none";
+    private ArrayDeque<Agent> cleanerAgents = new ArrayDeque<Agent>();
     private Node node;
 
     public ManagerAgent(String _name) {
@@ -113,10 +115,61 @@ public class ManagerAgent extends Agent
 
     @Override
     public void observed() {
+        //Get delegation agent
+        ArrayList<Agent> delegateTo = new ArrayList<Agent>();
+        if (cleanerAgentState.containsValue(false))
+        {
+            for (Entry<String, Boolean> as : cleanerAgentState.entrySet())
+            {
+                if (as.getValue() == false)
+                {
+                    for (Agent a : cleanerAgents)
+                    {
+                        if (a.getName().equals(as.getKey()))
+                        {
+                            delegateTo.add(a);
+                        }
+                    }
+                    break;//Only delegate to one agent
+                }
+            }
+        }
+        //If no free agent, called during initialisation no need to delegate
+        if (delegateTo.size() == 0 && cleanerAgents.size() > 0)
+        {
+            Agent next = cleanerAgents.pop();
+            delegateTo.add(next);
+            cleanerAgents.push(next);
+        }
         for (Observation o : observations)
         {
             DirtObservation d = (DirtObservation)o;
             updateCareValues(d.getLocation(), d.getIsBadDirt());
+            //If observed dirt delegate if normal dirt or delegate if safety critial dirt and free agent
+            //Delegate to cleaner
+            if ((d.getIsBadDirt() == DirtLevel.dl_badDirt && cleanerAgentState.containsValue(false)) || 
+                (d.getIsBadDirt() == DirtLevel.dl_dirt))
+            {
+                String resName = "clean";
+                if (d.getIsBadDirt() == DirtLevel.dl_badDirt)
+                {
+                    resName += "SCDirt";
+                }
+                resName += "(" + d.getLocation().getFirst() + "," + d.getLocation().getSecond() + ")";
+                ArrayList<Responsibility> subRes = new ArrayList<Responsibility>();
+                ArrayList<TaskAction> clean = new ArrayList<TaskAction>();
+                clean.add(new TaskAction("clean(" + d.getLocation().getFirst() + "," + d.getLocation().getSecond() + ")"));
+                TaskResponsibility cleantile = new TaskResponsibility(clean, new ArrayList<TaskState>());
+                //Add delegation
+                Responsibility delegated = new Responsibility(resName, subRes, cleantile, Concludes.rt_oneshot);
+                
+                if (!node.getResponsibilities(this).isAssigned(delegated))
+                {
+                    delegations.add(new Delegation(delegated, delegateTo));
+                }
+                //I've delegated so I no longer care about the square to clean, assume it is clean
+                updateCareValues(d.getLocation(), DirtLevel.dl_clear);
+            }
         }
         observations.clear();
     }
@@ -150,73 +203,19 @@ public class ManagerAgent extends Agent
                     switch(action[0])
                     {
                         case "clean":
-                            //Choose delegation and need to check if already delegated
-                            if (!node.getResponsibilities(this).isAssigned(r))
+                            String coord = action[1].substring(0,action[1].indexOf(")"));
+                            String[] icoords = coord.split(",");
+                            Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.valueOf(icoords[0]),Integer.valueOf(icoords[1]));
+                            //Do the cleaning, this should only trigger when safety critial dirt is there and the other agents are busy
+                            if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
                             {
-                                String toDelegate = "none";
-                                if (cleanerAgentState.containsValue(false))
-                                {
-                                    for (Entry<String, Boolean> as : cleanerAgentState.entrySet())
-                                    {
-                                        if (as.getValue() == false)
-                                        {
-                                            toDelegate = as.getKey();
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (toDelegate.equals("none"))
-                                {
-                                    String coord = action[1].substring(0,action[1].indexOf(")"));
-                                    String[] icoords = coord.split(",");
-                                    Pair<Integer, Integer> toGo = new Pair<Integer,Integer>(Integer.valueOf(icoords[0]),Integer.valueOf(icoords[1]));
-                                    if (r.getName().contains("SC"))
-                                    {
-                                        
-                                        if (getX() == toGo.getFirst() && getY() == toGo.getSecond())
-                                        {
-                                            envAction = AgentAction.aa_clean;
-                                            env.recordAction(this, ta.actionToDo);
-                                        }
-                                        else
-                                        {
-                                            envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
-                                            env.recordAction(this, envAction.toString());
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
-                                        ArrayList<Agent> delegateTo = new ArrayList<Agent>();
-                                        toDelegate = lastDelegatingAgent;
-                                        for (Agent a : cleanerAgents)
-                                        {
-                                            if (a.getName() != toDelegate)
-                                            {
-                                                delegateTo.add(a);
-                                                lastDelegatingAgent = a.getName();
-                                                break;
-                                            }
-                                        }
-                                        delegations.add(new Delegation(delegated, delegateTo));
-                                        //I've delegated so I no longer care about the square to clean, assume it is clean
-                                        updateCareValues(toGo, DirtLevel.dl_clear);
-                                    }
-                                }
-                                else
-                                {
-                                    Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
-                                    ArrayList<Agent> delegateTo = new ArrayList<Agent>();
-                                    for (Agent a : cleanerAgents)
-                                    {
-                                        if (a.getName().equals(toDelegate))
-                                        {
-                                            delegateTo.add(a);
-                                            lastDelegatingAgent = a.getName();
-                                        }
-                                    }
-                                    delegations.add(new Delegation(delegated, delegateTo));
-                                }
+                                envAction = AgentAction.aa_clean;
+                                env.recordAction(this, ta.actionToDo);
+                            }
+                            else
+                            {
+                                envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
+                                env.recordAction(this, envAction.toString());
                             }
                             break;
                         case "sendReport":
@@ -232,8 +231,8 @@ public class ManagerAgent extends Agent
                             }
                             else
                             {
-                                Pair<Integer,Integer> toGo = env.getZoneLocation(zoneToObserve);
-                                envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGo);
+                                Pair<Integer,Integer> toGoO = env.getZoneLocation(zoneToObserve);
+                                envAction = Helper.Routes.getNextMove(env, new Pair<Integer,Integer>(getX(),getY()), toGoO);
                                 env.recordAction(this, envAction.toString());
                             }
                             break;
@@ -251,8 +250,8 @@ public class ManagerAgent extends Agent
         node = nodet;
         if (cleanerAgents.isEmpty())
         {
-            cleanerAgents.add(nodet.agents.get(0));//Know that manager agent is agent 2
-            cleanerAgents.add(nodet.agents.get(1));
+            cleanerAgents.push(nodet.agents.get(0));//Know that manager agent is agent 2
+            cleanerAgents.push(nodet.agents.get(1));
             //Setup care values for observe, now know how many rooms there are
             for (Character z : env.getZones())
             {

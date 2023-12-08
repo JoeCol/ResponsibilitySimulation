@@ -6,10 +6,17 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ResponsibilityGUI",
+            "request": "launch",
+            "mainClass": "ResponsibilityGUI",
+            "projectName": "ResponsibilitySimulation_fbf15e31"
+        },
+        {
+            "type": "java",
             "name": "Launch ResponsibilityGUI",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
-            "projectName": "ResponsibilitySimulation_e6bd807c",
+            "projectName": "ResponsibilitySimulation_fbf15e31",
             "args": "cleaning saveLocation /Test/ worldFile 14Rooms.world"
         },
         {
