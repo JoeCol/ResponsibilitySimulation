@@ -67,8 +67,9 @@ public class Responsibility {
         restype.resolution(t);
     }
 
-    public boolean failed() {
-        return false;
+    public boolean failed() 
+    {
+        return false;//Need to implement this
     }
 
     public boolean fulfilled() 

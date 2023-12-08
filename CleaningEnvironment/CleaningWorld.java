@@ -268,17 +268,17 @@ public class CleaningWorld extends Environment
 	{
 		try {
 			String filename = "DirtRecord_";
-			if (!Files.exists(Paths.get(saveLocation)))
+			if (!Files.exists(Paths.get(System.getProperty("user.dir") + saveLocation)))
 			{
-				Files.createDirectories(Paths.get(saveLocation));
+				Files.createDirectories(Paths.get(System.getProperty("user.dir") + saveLocation));
 			}
 			int fileNo = 1;
-			while (Files.exists(Paths.get(saveLocation + filename + fileNo + ".csv")))
+			while (Files.exists(Paths.get(System.getProperty("user.dir") + saveLocation + filename + fileNo + ".csv")))
 			{
 				fileNo++;
 			}
 			
-			FileWriter fw = new FileWriter(saveLocation + filename + fileNo + ".csv");
+			FileWriter fw = new FileWriter(System.getProperty("user.dir") + saveLocation + filename + fileNo + ".csv");
 			fw.write("x,y,appeared,cleaned,isBadDirt" + System.lineSeparator());
 			for (int x = 0; x < getWidth(); x++)
 			{
@@ -287,7 +287,7 @@ public class CleaningWorld extends Environment
 					DirtRecord dr = getCell(x, y).getDirtRecord();
 					for (Record r : dr.records)
 					{
-						fw.write(x + "," + y + "," + r.toString());
+						fw.write(x + "," + y + "," + r.toString() + System.lineSeparator());
 					}
 				}
 			}
@@ -365,7 +365,7 @@ public class CleaningWorld extends Environment
 		{
 			case "cdc<5":
 				//TODO add actual check
-				break;
+				return getTotalSCDirt() < 5;
 		}
         return true;
     }

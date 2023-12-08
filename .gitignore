@@ -28,3 +28,6 @@ replay_pid*
 *.phd
 *.txt
 *.trc
+
+# Testing files
+/Test/

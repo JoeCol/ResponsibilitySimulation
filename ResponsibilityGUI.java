@@ -105,6 +105,7 @@ public class ResponsibilityGUI {
 			}
 		}
 		env.saveData();
+		System.exit(0);//Close program down
 	}
 
 	/**
