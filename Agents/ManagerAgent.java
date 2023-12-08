@@ -203,23 +203,21 @@ public class ManagerAgent extends Agent
                                         updateCareValues(toGo, DirtLevel.dl_clear);
                                     }
                                 }
-                            }
-                            else
-                            {
-                                Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
-                                ArrayList<Agent> delegateTo = new ArrayList<Agent>();
-                                for (Agent a : cleanerAgents)
+                                else
                                 {
-                                    if (a.getName().equals(toDelegate))
+                                    Responsibility delegated = new Responsibility(r.getName(), r.getSubRes(), r.getResponsibilityType(), Concludes.rt_oneshot);
+                                    ArrayList<Agent> delegateTo = new ArrayList<Agent>();
+                                    for (Agent a : cleanerAgents)
                                     {
-                                        delegateTo.add(a);
-                                        lastDelegatingAgent = a.getName();
+                                        if (a.getName().equals(toDelegate))
+                                        {
+                                            delegateTo.add(a);
+                                            lastDelegatingAgent = a.getName();
+                                        }
                                     }
+                                    delegations.add(new Delegation(delegated, delegateTo));
                                 }
-                                delegations.add(new Delegation(delegated, delegateTo));
                             }
-                            //If no free agent clean sc dirt
-                            //else 
                             break;
                         case "sendReport":
                             System.out.println("Report that safety critial dirt levels have exceeded safe levels");
