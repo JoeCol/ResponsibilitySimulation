@@ -29,7 +29,7 @@ public class CleanerAgent extends Agent
 
     @Override
     public boolean accepts(Environment env, Responsibility r) {
-        return r.getName().contains("report");
+        return r.getName().compareTo("report")==0;
     }
 
     @Override

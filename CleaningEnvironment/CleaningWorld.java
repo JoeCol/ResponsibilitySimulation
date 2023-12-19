@@ -12,6 +12,9 @@ import java.util.ArrayDeque;
 import java.util.Random;
 import java.util.Set;
 import java.util.Map.Entry;
+
+import com.ibm.dtfj.corereaders.zos.util.IntegerMap;
+
 import java.nio.file.*;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -87,6 +90,12 @@ public class CleaningWorld extends Environment
 					break;
 				case "worldfile":
 					worldFileLocation = args[++i];
+					break;
+				case "dirtChance":
+					dirtEveryX = Integer.parseInt(args[++i]);
+					break;
+				case "scdirtChance":
+					badDirtEveryX = Integer.parseInt(args[++i]);
 					break;
 				default:
 					break;
@@ -317,9 +326,11 @@ public class CleaningWorld extends Environment
 		{
 			setup_agents();
 		}
-		else if (currentTime % dirtEveryX == 0)//TODO fix this
+		int dirtNum = r.nextInt(100);
+		int scDirt = r.nextInt(100);
+		if (dirtNum < dirtEveryX)
 		{
-			addDirt(currentTime % badDirtEveryX == 0, currentTime);
+			addDirt(scDirt < badDirtEveryX, currentTime);
 		}
 	}
 
@@ -364,7 +375,6 @@ public class CleaningWorld extends Environment
 		switch (stateToCheck)
 		{
 			case "cdc<5":
-				//TODO add actual check
 				return getTotalSCDirt() < 5;
 		}
         return true;

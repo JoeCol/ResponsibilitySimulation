@@ -30,6 +30,7 @@ public class ManagerAgent extends Agent
     private CleaningWorld env;
     private ArrayDeque<Agent> cleanerAgents = new ArrayDeque<Agent>();
     private Node node;
+    private int numberOfSCDirt = 0;
 
     public ManagerAgent(String _name) {
         super(_name);
@@ -70,7 +71,7 @@ public class ManagerAgent extends Agent
 
     @Override
     public boolean accepts(Environment env, Responsibility r) {
-        return !r.getName().contains("report");
+        return r.getName().compareTo("report")!=0;
     }
 
     @Override
@@ -258,6 +259,7 @@ public class ManagerAgent extends Agent
                 careValues.put("observe(" + z + ")", 5);
             }
         }
+        numberOfSCDirt = env.getTotalSCDirt();
     }
 
     @Override
@@ -265,6 +267,15 @@ public class ManagerAgent extends Agent
         String agent = msg.split(",")[0];
         boolean working = Boolean.parseBoolean(msg.split(",")[1]);
         cleanerAgentState.put(agent, working);
+    }
+
+    @Override
+    public boolean canDo(Responsibility r) {
+        if (r.getName().compareToIgnoreCase("safety") == 0 && numberOfSCDirt >= 5) //We know the task is to compare against 5 SC dirt appearences
+        {
+            return false;
+        }
+        return r.getName().compareTo("report")!=0;
     }
 	
 }

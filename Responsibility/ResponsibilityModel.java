@@ -80,18 +80,23 @@ public class ResponsibilityModel
 
     private void resolution() 
     {
+        ArrayDeque<Responsibility> resToAdd = new ArrayDeque<Responsibility>();
         for (Responsibility r : nodet.res.getActiveResponsibilities())
         {
             r.doResolution(nodet);
             if (r.failed(nodet.agents))
             {
-                    nodet.res.removeAllAssignments(r);
-                    nodet.res.addActiveRes(r.getFailRes());
+                nodet.res.removeAllAssignments(r);
+                resToAdd.addAll(r.getFailRes());
             }
             if (r.fulfilled())
             {
                 nodet.res.removeAllAssignments(r);
             }
+        }
+        for (Responsibility r : resToAdd)
+        {
+            nodet.res.addActiveRes(r);
         }
     }
 

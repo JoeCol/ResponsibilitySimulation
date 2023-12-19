@@ -84,7 +84,7 @@ public class Responsibility {
     public boolean failed(ArrayList<Agent> possibleAgents) 
     {
         ArrayList<Agent> proposed = getValidAgents(this, possibleAgents);
-        return proposed.size() > 0;//Need to implement this
+        return proposed.size() == 0;//Need to implement this
     }
 
     public boolean fulfilled() 
