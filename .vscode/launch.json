@@ -9,14 +9,21 @@
             "name": "ResponsibilityGUI",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
-            "projectName": "ResponsibilitySimulation_fbf15e31"
+            "projectName": "ResponsibilitySimulation_e6bd807c"
+        },
+        {
+            "type": "java",
+            "name": "ResponsibilityGUI",
+            "request": "launch",
+            "mainClass": "ResponsibilityGUI",
+            "projectName": "ResponsibilitySimulation_e6bd807c"
         },
         {
             "type": "java",
             "name": "Launch ResponsibilityGUI",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
-            "projectName": "ResponsibilitySimulation_fbf15e31",
+            "projectName": "ResponsibilitySimulation_e6bd807c",
             "args": "cleaning saveLocation /Test/ worldFile 14Rooms.world"
         },
         {
@@ -27,19 +34,11 @@
         },
         {
             "type": "java",
-            "name": "Launch Naive",
+            "name": "Launch Test",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
             "projectName": "ResponsibilitySimulation_e6bd807c",
-            "args": "naive saveLoc \"output/naive15/\" speed 50"
-        },
-        {
-            "type": "java",
-            "name": "Launch Res",
-            "request": "launch",
-            "mainClass": "ResponsibilityGUI",
-            "projectName": "ResponsibilitySimulation_e6bd807c",
-            "args": "saveLoc \"output/Res15/\" dirtInterval 150 15 speed 0 nogui"
+            "args": "nogui simsteps 5000 cleaning saveLocation /Users/user/Library/CloudStorage/OneDrive-TheUniversityofManchester/Manchester/Responsibility/JAAMASResults/Cleaning/Dirt5/SCDirt4 worldFile 14Rooms.world dirtChance 10 scdirtChance 50"
         }
     ]
 }

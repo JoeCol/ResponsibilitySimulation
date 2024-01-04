@@ -75,7 +75,8 @@ public class ResponsibilityModel
         nodet.env = env;
         nodet.res = new Responsibilities(startingResponsibilities);
         sendNodeUpdates();
-        //Record node
+        //Allow agents to setup
+        reason();
     }
 
     private void resolution() 

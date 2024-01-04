@@ -28,6 +28,7 @@ public class CleaningWorldCell extends WorldCell
 		dirtLevel = bad ? DirtLevel.dl_badDirt : DirtLevel.dl_dirt;
 		appeared = time;
 		remainingCleaningLeft = cleaningLength;
+		dirtRecord.startRecord(time, bad);
 	}
 	
 	public boolean clean(int time)
@@ -35,7 +36,7 @@ public class CleaningWorldCell extends WorldCell
 		remainingCleaningLeft--;
 		if (remainingCleaningLeft == 0)
 		{
-			dirtRecord.addRecord(appeared,time,dirtLevel==DirtLevel.dl_badDirt);
+			dirtRecord.endRecord(time);
 			dirtLevel = DirtLevel.dl_clear;
 			cleaned = time;
 			return true;

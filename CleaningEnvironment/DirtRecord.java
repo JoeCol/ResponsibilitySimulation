@@ -46,8 +46,18 @@ public class DirtRecord {
 		records.clear();
 	}
 
-	public void addRecord(int start, int end, boolean badDirt) 
+	public void startRecord(int start, boolean badDirt)
+	{
+		records.add(new Record(start, Integer.MAX_VALUE, badDirt));
+	}
+
+	public void endRecord(int end)
+	{
+		records.get(records.size() - 1).timeCleaned = end;
+	}
+
+	/*public void addRecord(int start, int end, boolean badDirt) 
 	{
 		records.add(new Record(start, end, badDirt));
-	}
+	}*/
 }

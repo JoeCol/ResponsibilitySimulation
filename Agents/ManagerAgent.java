@@ -1,7 +1,6 @@
 package Agents;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -13,7 +12,6 @@ import Environment.Observation;
 import Environment.Environment.AgentAction;
 import Helper.Pair;
 import Responsibility.Delegation;
-import Responsibility.Responsibilities;
 import Responsibility.Responsibility;
 import Responsibility.ResponsibilityModel.Node;
 import Responsibility.TaskResponsibility;
@@ -220,7 +218,8 @@ public class ManagerAgent extends Agent
                             }
                             break;
                         case "sendReport":
-                            System.out.println("Report that safety critial dirt levels have exceeded safe levels");
+                            //System.out.println("Report that safety critial dirt levels have exceeded safe levels");
+                            env.addExceeded();
                             env.recordAction(this, ta.actionToDo);
                             break;
                         case "observe":

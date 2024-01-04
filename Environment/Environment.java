@@ -2,8 +2,6 @@ package Environment;
 
 import java.awt.Component;
 import java.util.ArrayList;
-import java.util.HashMap;
-
 import Agents.Agent;
 import Helper.Pair;
 import Responsibility.ResponsibilityModel.Node;

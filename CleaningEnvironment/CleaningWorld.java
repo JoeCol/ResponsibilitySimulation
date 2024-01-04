@@ -3,24 +3,18 @@ import java.awt.Color;
 import java.awt.Component;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.ArrayDeque;
 import java.util.Random;
-import java.util.Set;
 import java.util.Map.Entry;
-
-import com.ibm.dtfj.corereaders.zos.util.IntegerMap;
 
 import java.nio.file.*;
 import java.io.FileWriter;
 import java.io.IOException;
 
 import Agents.Agent;
-import Agents.ManagerAgent;
 import CleaningEnvironment.DirtRecord.Record;
 import Environment.Environment;
 import Helper.Pair;
@@ -35,6 +29,7 @@ public class CleaningWorld extends Environment
 	HashSet<Character> zones = new HashSet<Character>();
 	int totalDirt = 0;
 	int totalSCDirt = 0;
+	int numExceeded = 0;
 	
 	Random r = new Random();
 	
@@ -91,10 +86,10 @@ public class CleaningWorld extends Environment
 				case "worldfile":
 					worldFileLocation = args[++i];
 					break;
-				case "dirtChance":
+				case "dirtchance":
 					dirtEveryX = Integer.parseInt(args[++i]);
 					break;
-				case "scdirtChance":
+				case "scdirtchance":
 					badDirtEveryX = Integer.parseInt(args[++i]);
 					break;
 				default:
@@ -221,6 +216,11 @@ public class CleaningWorld extends Environment
 		return world[0].length;
 	}
 
+	public void addExceeded()
+	{
+		numExceeded++;
+	}
+
 	private CleaningWorldCell getCell(int x, int y) 
 	{
 		if (y == -1 || x == -1 || x >= world[0].length || y >= world.length)
@@ -277,17 +277,17 @@ public class CleaningWorld extends Environment
 	{
 		try {
 			String filename = "DirtRecord_";
-			if (!Files.exists(Paths.get(System.getProperty("user.dir") + saveLocation)))
+			if (!Files.exists(Paths.get(saveLocation)))
 			{
-				Files.createDirectories(Paths.get(System.getProperty("user.dir") + saveLocation));
+				Files.createDirectories(Paths.get(saveLocation));
 			}
 			int fileNo = 1;
-			while (Files.exists(Paths.get(System.getProperty("user.dir") + saveLocation + filename + fileNo + ".csv")))
+			while (Files.exists(Paths.get(saveLocation + filename + fileNo + ".csv")))
 			{
 				fileNo++;
 			}
 			
-			FileWriter fw = new FileWriter(System.getProperty("user.dir") + saveLocation + filename + fileNo + ".csv");
+			FileWriter fw = new FileWriter(saveLocation + filename + fileNo + ".csv");
 			fw.write("x,y,appeared,cleaned,isBadDirt" + System.lineSeparator());
 			for (int x = 0; x < getWidth(); x++)
 			{
@@ -300,6 +300,10 @@ public class CleaningWorld extends Environment
 					}
 				}
 			}
+			fw.flush();
+			fw.close();
+			fw = new FileWriter(saveLocation + "NumExceeded" + fileNo + ".txt");
+			fw.write("Exceeded:" + numExceeded + System.lineSeparator());
 			fw.flush();
 			fw.close();
 		} catch (IOException e) {

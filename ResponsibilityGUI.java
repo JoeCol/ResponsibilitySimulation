@@ -30,8 +30,6 @@ public class ResponsibilityGUI {
 	 */
 	public static void main(String[] args) 
 	{
-		String[] tmpargs = {"cleaning", "saveLocation", "/Test/", "worldFile", "14Rooms.world"};
-		args = tmpargs;
 		int simSpeed = 0;
 		boolean gui = true;
 		int simSteps = 10000;
