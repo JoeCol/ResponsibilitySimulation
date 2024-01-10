@@ -13,6 +13,7 @@ public class SRPanel extends JPanel
 	SRWorldCell[][] world;
 	private HashMap<Agent, Color> colours;
 	private ArrayList<Agent> agents;
+	private ArrayList<Human> humans;
 	
 	public SRPanel()
 	{
@@ -40,28 +41,29 @@ public class SRPanel extends JPanel
 						g.setColor(Color.BLACK);
 						g.fillRect(1+(x * widthOfCell), g.getFontMetrics().getHeight() + (y * heightOfCell), widthOfCell, heightOfCell);
 					}
-					else if (!world[y][x].hasDirt()) //No dirt
+					else if (!world[y][x].isOnFire()) //On Fire
 					{
-						g.setColor(Color.white);
+						g.setColor(Color.RED);
 						g.fillRect(1+(x * widthOfCell), g.getFontMetrics().getHeight() + (y * heightOfCell), widthOfCell, heightOfCell);
 					}
-					else // dirt
+					else //Empty
 					{
-						if (world[y][x].hasBadDirt())
-						{
-							g.setColor(Color.red);
-						}
-						else
-						{
-							g.setColor(Color.lightGray);
-						}
+						g.setColor(Color.white);
 						g.fillRect(1+(x * widthOfCell), g.getFontMetrics().getHeight() + (y * heightOfCell), widthOfCell, heightOfCell);
 					}
 					g.setColor(Color.black);
 					//g.drawString("("+ x + "," + y + ") Zone:" + world[y][x].getZoneID(), 2+(x * widthOfCell), (g.getFontMetrics().getHeight() * 2) + (y * heightOfCell));
 				}
 			}
-			
+			for (Human h : humans)
+			{
+				int x = h.getX();
+				int y = h.getY();
+				int tx = 1+(x * widthOfCell);
+				int ty = g.getFontMetrics().getHeight() + (y * heightOfCell);
+				g.setColor(Color.GRAY);
+				g.fillOval(tx, ty, widthOfCell, heightOfCell);
+			}
 			for (Agent ag : agents)
 			{
 				int x = ag.getX();
@@ -77,11 +79,12 @@ public class SRPanel extends JPanel
 		}
 	}
 
-	public void setWorld(SRWorldCell[][] world2, ArrayList<Agent> _agents,
+	public void setWorld(SRWorldCell[][] world2, ArrayList<Agent> _agents, ArrayList<Human> _humans,
 			HashMap<Agent, Color> agentColours) {
 		world = world2;
 		agents = _agents;
 		colours = agentColours;
+		humans = _humans;
 		invalidate();
 		repaint();	
 		

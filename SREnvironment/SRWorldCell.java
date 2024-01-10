@@ -6,22 +6,32 @@ public class SRWorldCell extends WorldCell
 {
     private char zoneID;
 	private boolean isOnFire;
+	private int timePutOut = 0;
+	private boolean isEscape = false;
+	
 	public boolean isOnFire() {
 		return isOnFire;
 	}
 
-	public void setOnFire(boolean isOnFire) {
-		this.isOnFire = isOnFire;
+	public void setOnFire() 
+	{
+		this.isOnFire = true;
 	}
 
-	private boolean hasHuman;
-
-	public boolean isHasHuman() {
-		return hasHuman;
+	public void putOutFire(int time)
+	{
+		isOnFire = false;
+		timePutOut = time;
 	}
 
-	public void setHasHuman(boolean hasHuman) {
-		this.hasHuman = hasHuman;
+	public boolean wasOnFire()
+	{
+		return timePutOut != 0;
+	}
+
+	public int timePutOut()
+	{
+		return timePutOut;
 	}
 
 	public char getZoneID() {
@@ -38,5 +48,10 @@ public class SRWorldCell extends WorldCell
 	{
 		super(zone != '0');
 		zoneID = zone;
+	}
+
+	public boolean isEscape() 
+	{
+		return isEscape;
 	}
 }

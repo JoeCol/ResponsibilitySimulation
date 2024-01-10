@@ -9,12 +9,15 @@ import javax.swing.border.BevelBorder;
 import Agents.Agent;
 import Agents.CleanerAgent;
 import Agents.ManagerAgent;
+import Agents.SRAgent;
 import CleaningEnvironment.CleaningStartingResponsibilities;
 import CleaningEnvironment.CleaningWorld;
 import Environment.Environment;
 import Responsibility.NodeUpdate;
 import Responsibility.ResponsibilityModel;
 import Responsibility.ResponsibilityModel.Node;
+import SREnvironment.SRStartingResponsibilities;
+import SREnvironment.SRWorld;
 
 import javax.swing.JLabel;
 import java.util.*;
@@ -35,6 +38,7 @@ public class ResponsibilityGUI {
 		int simSteps = 10000;
 		resModel = new ResponsibilityModel();
 		ArrayList<Agent> ags = new ArrayList<Agent>();
+		boolean cleaningScenario = false;
 		for (int i = 0; i < args.length; i++)
 		{
 			switch (args[i].toLowerCase())
@@ -49,7 +53,15 @@ public class ResponsibilityGUI {
 				ags.add(new ManagerAgent("M1"));
 				resModel.addStartingResponsibilities(CleaningStartingResponsibilities.getAll((CleaningWorld)env));
 				i = args.length;//Stop processing arguments
+				cleaningScenario = true;
 				break;
+			case "sr":
+				env = new SRWorld(Arrays.copyOfRange(args,i + 1,args.length));//Search and Rescue scenario
+				ags.add(new SRAgent("A1"));
+				ags.add(new SRAgent("A2"));
+				ags.add(new SRAgent("A3"));
+				resModel.addStartingResponsibilities(SRStartingResponsibilities.getAll((SRWorld)env));
+				i = args.length;
 			case "speed":
 				simSpeed = Integer.valueOf(args[++i]);
 				break;
@@ -85,7 +97,10 @@ public class ResponsibilityGUI {
 			});
 		}
 		resModel.setup(ags, env);
-		((CleaningWorld)env).setupManagerAgentHelper(ags.get(2));//addobservations to manager agent to setup default care values
+		if (cleaningScenario)
+		{
+			((CleaningWorld)env).setupManagerAgentHelper(ags.get(2));//addobservations to manager agent to setup default care values
+		}
 
 		for (int i = 0; i < simSteps; i++)
 		{

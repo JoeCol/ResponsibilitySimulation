@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayDeque;
 import java.util.Random;
 import java.util.Map.Entry;
 
@@ -15,11 +14,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import Agents.Agent;
-import CleaningEnvironment.CleaningPanel;
-import CleaningEnvironment.CleaningWorldCell;
-import CleaningEnvironment.DirtObservation;
-import CleaningEnvironment.DirtRecord;
-import CleaningEnvironment.DirtRecord.Record;
 import Environment.Environment;
 import Helper.Pair;
 import Responsibility.ResponsibilityModel.Node;
@@ -28,6 +22,8 @@ public class SRWorld extends Environment
 {
 	String saveLocation;
 	ArrayList<Agent> agents = new ArrayList<Agent>();
+	ArrayList<Human> humans = new ArrayList<Human>();
+	HashMap<Agent, Human> pickedUp = new HashMap<Agent, Human>();
 	HashMap<Agent, Color> agentColours = new HashMap<Agent, Color>();
 	HashMap<Pair<Integer, Integer>, Character> zoneSquares = new HashMap<Pair<Integer, Integer>, Character>();
 	HashSet<Character> zones = new HashSet<Character>();
@@ -63,16 +59,18 @@ public class SRWorld extends Environment
 	
 	private void addFireAndHumans() 
 	{
-		Collections.shuffle(possibleLocations);//to ensure that dirt is not evenly distributed as it is cleaned.
+		Collections.shuffle(possibleLocations);
 		for (int fire = 0; fire < totalFire; fire++)
 		{
-			Pair<Integer,Integer> newDirt = possibleLocations.remove(0);
-			getCell(newDirt.getFirst(),newDirt.getSecond()).setOnFire(true);;
+			Pair<Integer,Integer> newPos = possibleLocations.remove(0);
+			getCell(newPos.getFirst(),newPos.getSecond()).setOnFire();
 		}
+
 		for (int human = 0; human < totalToRescue; human++)
 		{
-			Pair<Integer,Integer> newDirt = possibleLocations.remove(0);
-			getCell(newDirt.getFirst(),newDirt.getSecond()).setHasHuman(true);
+			Pair<Integer,Integer> newPos = possibleLocations.remove(0);
+			Human h = new Human(newPos.getFirst(),newPos.getSecond());
+			humans.add(h);
 		}
 	}
 
@@ -153,7 +151,51 @@ public class SRWorld extends Environment
 		if (getCell(x, y).isTraversable())//Needs work for obstructed
 		{
 			ag.setNewLocation(x,y);
+			if (pickedUp.containsKey(ag))
+			{
+				pickedUp.get(ag).setNewPos(x,y);
+			}
 		}
+	}
+
+	private void pickUpHuman(Agent ag, int x, int y)
+	{
+		Human h = getHumanAt(x, y);
+		if (h != null)
+		{
+			h.setTimePickedUp(currentTime);
+			pickedUp.put(ag, h);
+		}
+	}
+
+	private void putDownHuman(Agent ag, int x, int y)
+	{
+		Human h = pickedUp.get(ag);
+		if (h != null)
+		{
+			if (getCell(x, y).isEscape())
+			{
+				h.setTimeRescued(currentTime);
+			}
+			pickedUp.remove(ag);
+		}
+	}
+
+	private void putOutFire(int x, int y)
+	{
+		getCell(x, y).putOutFire(currentTime);
+	}
+
+	public Human getHumanAt(int x, int y)
+	{
+		for (Human h : humans)
+		{
+			if (h.x == x && h.y == y)
+			{
+				return h;
+			}
+		}
+		return null;
 	}
 
 	public HashSet<Character> getZones()
@@ -209,6 +251,15 @@ public class SRWorld extends Environment
 			case aa_moveupright:
 				moveAgent(ag, ag.getX() + 1, ag.getY() - 1);
 				break;
+			case aa_pickup:
+				pickUpHuman(ag, ag.getX(), ag.getY());
+				break;
+			case aa_putdown:
+				putDownHuman(ag, ag.getX(), ag.getY());
+				break;
+			case aa_putoutfire:
+				putOutFire(ag.getX(), ag.getY());
+				break;
 			case aa_none:
 				break;
 			default:
@@ -232,19 +283,23 @@ public class SRWorld extends Environment
 			}
 			
 			FileWriter fw = new FileWriter(saveLocation + filename + fileNo + ".csv");
-			fw.write("x,y,appeared,cleaned,isBadDirt" + System.lineSeparator());
+			fw.write("type,length,wait" + System.lineSeparator());
+			for (Human h : humans)
+			{
+				fw.write("human," + h.getRescueLength() + "," + h.getTimePickedUp() + System.lineSeparator());
+			}
 			for (int x = 0; x < getWidth(); x++)
 			{
 				for (int y = 0; y < getHeight(); y++)
 				{
-					DirtRecord dr = getCell(x, y).getDirtRecord();
-					for (Record r : dr.records)
+					if (getCell(x, y).wasOnFire())
 					{
-						fw.write(x + "," + y + "," + r.toString() + System.lineSeparator());
+						fw.write("fire," + getCell(x, y).timePutOut() + ",0" + System.lineSeparator());
 					}
 				}
 			}
 			fw.flush();
+			fw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -258,7 +313,7 @@ public class SRWorld extends Environment
 
 	@Override
 	public void updateGUIPanel(Node node) {
-		guiPanel.setWorld((SRWorldCell[][])world, agents, agentColours);
+		guiPanel.setWorld((SRWorldCell[][])world, agents, humans, agentColours);
 	}
 
 	@Override
