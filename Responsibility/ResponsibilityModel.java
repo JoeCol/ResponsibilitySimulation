@@ -50,7 +50,17 @@ public class ResponsibilityModel
     {
         nodet.timet++;
         resolution();
-        assignment(nodet.res.getUnassignedResponsibilities());
+        if (!centralised)
+        {
+            for (Agent ag : nodet.agents)
+            {
+                assignment(nodet.getResponsibilities(ag).getUnassignedResponsibilities(), ag);
+            }
+        }
+        else
+        {
+            assignment(nodet.res.getUnassignedResponsibilities());
+        }
         reason();
         delegation();
         responsibilitySelection();
@@ -79,25 +89,99 @@ public class ResponsibilityModel
         reason();
     }
 
+    public void setup(ArrayList<Agent> ag, Environment env, HashMap<Agent,Responsibilities> startingResponsibilities)
+    {
+        centralised = false;
+        nodet = new Node();
+        nodet.timet = 0;
+        nodet.agents = ag;
+        nodet.env = env;
+        for (Agent a : nodet.agents)
+        {
+            nodet.agentRes.put(a, startingResponsibilities.get(a));
+        }
+        sendNodeUpdates();
+        //Allow agents to setup
+        reason();
+    }
+
     private void resolution() 
     {
-        ArrayDeque<Responsibility> resToAdd = new ArrayDeque<Responsibility>();
-        for (Responsibility r : nodet.res.getActiveResponsibilities())
+        if (!centralised)
         {
-            r.doResolution(nodet);
-            if (r.failed(nodet.agents))
+            for (Agent ag : nodet.agents)
             {
-                nodet.res.removeAllAssignments(r);
-                resToAdd.addAll(r.getFailRes());
-            }
-            if (r.fulfilled())
-            {
-                nodet.res.removeAllAssignments(r);
+                ArrayDeque<Responsibility> resToAdd = new ArrayDeque<Responsibility>();
+                for (Responsibility r : nodet.getResponsibilities(ag).getActiveResponsibilities())
+                {
+                    r.doResolution(nodet);
+                    if (r.failed(nodet.agents))
+                    {
+                        nodet.getResponsibilities(ag).removeAllAssignments(r);
+                        resToAdd.addAll(r.getFailRes());
+                    }
+                    if (r.fulfilled())
+                    {
+                        nodet.getResponsibilities(ag).removeAllAssignments(r);
+                    }
+                }
+                for (Responsibility r : resToAdd)
+                {
+                    nodet.getResponsibilities(ag).addActiveRes(r);
+                }
             }
         }
-        for (Responsibility r : resToAdd)
+        else
         {
-            nodet.res.addActiveRes(r);
+            ArrayDeque<Responsibility> resToAdd = new ArrayDeque<Responsibility>();
+            for (Responsibility r : nodet.res.getActiveResponsibilities())
+            {
+                r.doResolution(nodet);
+                if (r.failed(nodet.agents))
+                {
+                    nodet.res.removeAllAssignments(r);
+                    resToAdd.addAll(r.getFailRes());
+                }
+                if (r.fulfilled())
+                {
+                    nodet.res.removeAllAssignments(r);
+                }
+            }
+            for (Responsibility r : resToAdd)
+            {
+                nodet.res.addActiveRes(r);
+            }
+        }
+    }
+
+    private void assignment(ArrayList<Responsibility> unassignedRes, Agent ag) 
+    {
+        for (Responsibility r : unassignedRes)
+        {
+            //Assign subresponsibilities
+            assignment(r.getSubRes());
+            //Check if all sub responsibilities assigned
+            boolean allAssigned = true;
+            for (Responsibility subRes : r.getSubRes())
+            {
+                if (!nodet.getResponsibilities(ag).isAssigned(subRes))
+                {
+                    allAssigned = false;
+                    break;
+                }
+            }
+            if (allAssigned && !nodet.getResponsibilities(ag).isAssigned(r))
+            {
+                ArrayList<Agent> acceptingAgent = new ArrayList<Agent>();
+                for (Agent a : nodet.agents)
+                {
+                    if (a.accepts(nodet.env,r))
+                    {
+                        acceptingAgent.add(a);
+                    }
+                }
+                nodet.getResponsibilities(ag).addAssignment(acceptingAgent,r, nodet.timet, Integer.MAX_VALUE);
+            }
         }
     }
 
