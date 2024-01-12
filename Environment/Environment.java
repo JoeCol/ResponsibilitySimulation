@@ -10,7 +10,7 @@ public abstract class Environment
 {
     protected WorldCell[][] world;
     protected ArrayList<Pair<Agent,String>> previousActions = new ArrayList<Pair<Agent,String>>();
-    public enum AgentAction {aa_moveup, aa_movedown, aa_moveright, aa_moveleft, aa_clean, aa_observedirt, aa_moveupleft, aa_moveupright, aa_movedownleft, aa_movedownright, aa_finish, aa_none, aa_pickup, aa_putdown, aa_putoutfire}
+    public enum AgentAction {aa_moveup, aa_movedown, aa_moveright, aa_moveleft, aa_clean, aa_observedirt, aa_moveupleft, aa_moveupright, aa_movedownleft, aa_movedownright, aa_finish, aa_none, aa_pickup, aa_putdown, aa_putoutfire, aa_observeroom}
     public abstract void applyAction(Agent ag, AgentAction action);
     public abstract void saveData();
     public abstract Component getGUIPanel();

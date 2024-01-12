@@ -97,11 +97,6 @@ public class Responsibilities
         return sortedResponsiblities;
     }
 
-	public void AddActiveRes(Responsibility responsibility) 
-    {
-        activeResponsibilities.add(responsibility);
-	}
-
     public boolean isAssigned(Responsibility subRes) 
     {
         //Allow checks when the object is not the same in memory space but the same construction

@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import Agents.Agent;
+import CleaningEnvironment.DirtObservation;
 import Environment.Environment;
 import Helper.Pair;
 import Responsibility.ResponsibilityModel.Node;
@@ -158,6 +159,26 @@ public class SRWorld extends Environment
 		}
 	}
 
+	private void observeRoom(Agent ag)
+	{
+		Character zone = getZoneIDForAgent(ag);
+		for (int y = 0; y < world.length; y++)
+		{
+			for (int x = 0; x < world[y].length; x++)
+			{
+				if (getCell(x, y).getZoneID() == zone && getCell(x, y).isOnFire())
+				{
+					ag.addObservation(new FireObservation(x,y));
+				}
+				else if (getCell(x, y).getZoneID() == zone && getHumanAt(x, y) != null)
+				{
+					ag.addObservation(new HumanObservation(x,y));
+				}
+			}
+		}
+		ag.observed();
+	}
+
 	private void pickUpHuman(Agent ag, int x, int y)
 	{
 		Human h = getHumanAt(x, y);
@@ -259,6 +280,9 @@ public class SRWorld extends Environment
 				break;
 			case aa_putoutfire:
 				putOutFire(ag.getX(), ag.getY());
+				break;
+			case aa_observeroom:
+				observeRoom(ag);
 				break;
 			case aa_none:
 				break;

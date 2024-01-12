@@ -229,7 +229,7 @@ public class ResponsibilityModel
                 }
                 else
                 {
-                    nodet.res.AddActiveRes(d.getResponsibility());
+                    nodet.res.addActiveRes(d.getResponsibility());
                 }
                 if (allAccept(ag, d.getAgents(), d.getResponsibility()))
                 {
