@@ -13,19 +13,16 @@ public class SRAgent extends Agent
 
     public SRAgent(String _name) {
         super(_name);
-        //TODO Auto-generated constructor stub
     }
 
     @Override
     public boolean accepts(Agent a, Environment env, Responsibility r) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accepts'");
+        return true;//Agent accepts any delegation of responsibiity
     }
 
     @Override
     public boolean accepts(Environment env, Responsibility r) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accepts'");
+        return true;//Agent accepts any arising responsibility
     }
 
     @Override
@@ -84,8 +81,7 @@ public class SRAgent extends Agent
 
     @Override
     public void sendMsg(String msg) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sendMsg'");
+    
     }
 
     @Override

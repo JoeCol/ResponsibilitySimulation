@@ -223,11 +223,30 @@ public class ResponsibilityModel
             ArrayList<Delegation> delegated = new ArrayList<Delegation>();
             for (Delegation d : ag.getDelegations())
             {
-                nodet.res.AddActiveRes(d.getResponsibility());
+                if (!centralised)
+                {
+                    nodet.getResponsibilities(ag).addActiveRes(d.getResponsibility());
+                }
+                else
+                {
+                    nodet.res.AddActiveRes(d.getResponsibility());
+                }
                 if (allAccept(ag, d.getAgents(), d.getResponsibility()))
                 {
                     int end = Math.max(nodet.timet + d.getLength(), Integer.MAX_VALUE);
-                    nodet.res.addAssignment(ag, d.getAgents(), d.getResponsibility(), nodet.timet, end);
+                    if (!centralised)
+                    {
+                        nodet.getResponsibilities(ag).addAssignment(ag, d.getAgents(), d.getResponsibility(), nodet.timet, end);
+                        for (Agent delAgent : d.getAgents())
+                        {
+                            nodet.getResponsibilities(delAgent).addActiveRes(d.getResponsibility());
+                            nodet.getResponsibilities(delAgent).addAssignment(ag, d.getAgents(), d.getResponsibility(), nodet.timet, end);
+                        }
+                    }
+                    else
+                    {
+                        nodet.res.addAssignment(ag, d.getAgents(), d.getResponsibility(), nodet.timet, end);
+                    }
                     delegated.add(d);
                     //nodet.res.removeAssignment(ag, d.getResponsibility()); Change to theory, still responsible when delegated
                 }

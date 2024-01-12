@@ -9,6 +9,13 @@
             "name": "ResponsibilityGUI",
             "request": "launch",
             "mainClass": "ResponsibilityGUI",
+            "projectName": "ResponsibilitySimulation_fbf15e31"
+        },
+        {
+            "type": "java",
+            "name": "ResponsibilityGUI",
+            "request": "launch",
+            "mainClass": "ResponsibilityGUI",
             "projectName": "ResponsibilitySimulation_e6bd807c"
         },
         {

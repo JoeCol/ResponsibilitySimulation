@@ -14,6 +14,7 @@ import CleaningEnvironment.CleaningStartingResponsibilities;
 import CleaningEnvironment.CleaningWorld;
 import Environment.Environment;
 import Responsibility.NodeUpdate;
+import Responsibility.Responsibilities;
 import Responsibility.ResponsibilityModel;
 import Responsibility.ResponsibilityModel.Node;
 import SREnvironment.SRStartingResponsibilities;
@@ -39,6 +40,8 @@ public class ResponsibilityGUI {
 		resModel = new ResponsibilityModel();
 		ArrayList<Agent> ags = new ArrayList<Agent>();
 		boolean cleaningScenario = false;
+		boolean centralised = false;
+		HashMap<Agent,Responsibilities> startingResMapping = new HashMap<Agent,Responsibilities>();
 		for (int i = 0; i < args.length; i++)
 		{
 			switch (args[i].toLowerCase())
@@ -54,13 +57,14 @@ public class ResponsibilityGUI {
 				resModel.addStartingResponsibilities(CleaningStartingResponsibilities.getAll((CleaningWorld)env));
 				i = args.length;//Stop processing arguments
 				cleaningScenario = true;
+				centralised = true;
 				break;
 			case "sr":
 				env = new SRWorld(Arrays.copyOfRange(args,i + 1,args.length));//Search and Rescue scenario
 				ags.add(new SRAgent("A1"));
 				ags.add(new SRAgent("A2"));
 				ags.add(new SRAgent("A3"));
-				resModel.addStartingResponsibilities(SRStartingResponsibilities.getAll((SRWorld)env));
+				startingResMapping = SRStartingResponsibilities.getAll((SRWorld)env, ags);
 				i = args.length;
 			case "speed":
 				simSpeed = Integer.valueOf(args[++i]);
@@ -96,7 +100,14 @@ public class ResponsibilityGUI {
 				}
 			});
 		}
-		resModel.setup(ags, env);
+		if (centralised)
+		{
+			resModel.setup(ags, env);
+		}
+		else
+		{
+			resModel.setup(ags, env, startingResMapping);
+		}
 		if (cleaningScenario)
 		{
 			((CleaningWorld)env).setupManagerAgentHelper(ags.get(2));//addobservations to manager agent to setup default care values
