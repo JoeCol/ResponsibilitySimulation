@@ -19,6 +19,9 @@ import Environment.Environment;
 import Helper.Pair;
 import Responsibility.ResponsibilityModel.Node;
 
+/*
+ * TODO: Add fires that block agents being rescued to allow moral responsibility to have an effect
+ */
 public class SRWorld extends Environment
 {
 	String saveLocation;
